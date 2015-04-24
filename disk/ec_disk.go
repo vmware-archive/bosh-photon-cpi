@@ -3,39 +3,51 @@ package disk
 import (
 	bosherr "github.com/cloudfoundry/bosh-agent/errors"
 	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	boshsys "github.com/cloudfoundry/bosh-agent/system"
 
+	ec "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
 )
 
 const esxcloudDiskLogTag = "ESXCloudDisk"
 
 type ECDisk struct {
-	id   string
-	path string
-
-	fs     boshsys.FileSystem
-	logger boshlog.Logger
+	id   			string
+	esxCloudClient	ec.Client
+	logger 			boshlog.Logger
 }
 
-func NewECDisk(
-	id string,
-	path string,
-	fs boshsys.FileSystem,
-	logger boshlog.Logger,
-) ECDisk {
-	return ECDisk{id: id, path: path, fs: fs, logger: logger}
+func NewECDisk(id string, client ec.Client, logger boshlog.Logger) *ECDisk {
+	return &ECDisk{id: id, esxCloudClient: client, logger: logger}
 }
 
-func (s *ECDisk) ID() string { return s.id }
+func (d *ECDisk) ID() string { return d.id }
 
-func (s *ECDisk) Path() string { return s.path }
+func (d *ECDisk) Delete() error {
+	d.logger.Debug(esxcloudDiskLogTag, "Deleting disk '%s'", d.id)
 
-func (s *ECDisk) Delete() error {
-	s.logger.Debug(esxcloudDiskLogTag, "Deleting disk '%s'", s.id)
-
-	err := s.fs.RemoveAll(s.path)
+	deleteTask, err := d.esxCloudClient.Disks.Delete(d.id, false)
 	if err != nil {
-		return bosherr.WrapErrorf(err, "Deleting disk '%s'", s.path)
+		return bosherr.WrapErrorf(err, "Fail to create a task to delete disk '%s'", d.id)
+	}
+	if deleteTask == nil {
+		return bosherr.WrapErrorf(bosherr.Error("Fail to delete disk '%s'."),
+									"No task received from API when a task was expected, " +
+		                    		"but no error was received, which should not happen",
+									d.id)
+	}
+
+	waitTask, err := d.esxCloudClient.Tasks.Wait(deleteTask.ID)
+	if err != nil {
+		return bosherr.WrapErrorf(err, "Task failed: delete disk '%s'", d.id)
+	}
+	if waitTask == nil {
+		return bosherr.WrapErrorf(bosherr.Error("Fail to delete disk '%s' when wait for it."),
+									"No task received from API when a task was expected, " +
+									"but no error was received, which should not happen.",
+									d.id)
+	}
+	if waitTask.State != "COMPLETED" {
+		return bosherr.WrapErrorf(bosherr.Error("Delete disk task is not complete"),
+									"Task of delete disk '%s' is not Completed", d.id)
 	}
 
 	return nil

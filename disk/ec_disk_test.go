@@ -1,46 +1,61 @@
 package disk_test
 
 import (
-	"errors"
+    "net/http"
+    "net/http/httptest"
 
-	boshlog "github.com/cloudfoundry/bosh-agent/logger"
-	fakesys "github.com/cloudfoundry/bosh-agent/system/fakes"
+    . "github.com/onsi/ginkgo"
+    . "github.com/onsi/gomega"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+    boshlog "github.com/cloudfoundry/bosh-agent/logger"
 
-	. "github.com/esxcloud/bosh-esxcloud-cpi/disk"
+    . "github.com/esxcloud/bosh-esxcloud-cpi/disk"
+    . "github.com/esxcloud/bosh-esxcloud-cpi/mocks"
+    ec "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
 )
 
-var _ = Describe("DCDisk", func() {
-	var (
-		fs   *fakesys.FakeFileSystem
-		disk ECDisk
-	)
+var _ = Describe("ECDisk", func() {
+    var (
+        fc      *ec.Client
+        disk    *ECDisk
+        uri     string
 
-	BeforeEach(func() {
-		fs = fakesys.NewFakeFileSystem()
-		logger := boshlog.NewLogger(boshlog.LevelNone)
-		disk = NewECDisk("fake-disk-id", "/fake-disk-path", fs, logger)
-	})
+        server  *httptest.Server
+    )
 
-	Describe("Delete", func() {
-		It("deletes path", func() {
-			err := fs.WriteFileString("/fake-disk-path", "fake-content")
-			Expect(err).ToNot(HaveOccurred())
+    BeforeEach(func() {
+        server = NewMockServer()
+        uri = server.URL
 
-			err = disk.Delete()
-			Expect(err).ToNot(HaveOccurred())
+        Activate(true)
+        httpClient := &http.Client{Transport: DefaultMockTransport}
+        fc = ec.NewTestClient(uri, httpClient)
 
-			Expect(fs.FileExists("/fake-disk-path")).To(BeFalse())
-		})
+        logger := boshlog.NewLogger(boshlog.LevelNone)
+        disk = NewECDisk("fake-disk-id", *fc, logger)
+    })
 
-		It("returns error if deleting path fails", func() {
-			fs.RemoveAllError = errors.New("fake-remove-all-err")
+    AfterEach(func() {
+        server.Close()
+    })
 
-			err := disk.Delete()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("fake-remove-all-err"))
-		})
-	})
+
+    It("deletes a persistant disk successfully", func() {
+        delete_task := NewMockTask("DELETE_DISK", "QUEUED", "fake-delete-task-id")
+        pull_task := NewMockTask("DELETE_DISK", "COMPLETED", "")
+
+        RegisterResponder(
+            "DELETE",
+            uri + "/v1/disks/fake-disk-id?force=false",
+            CreateResponder(ToJson(delete_task)))
+
+        RegisterResponder(
+            "GET",
+            uri + "/v1/tasks/fake-delete-task-id",
+            CreateResponder(ToJson(pull_task)))
+
+        err := disk.Delete()
+        Expect(err).ToNot(HaveOccurred())
+    })
 })
+

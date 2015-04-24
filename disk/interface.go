@@ -1,15 +1,15 @@
 package disk
 
 type Creator interface {
-	Create(size int, virtualGuestId int) (Disk, error)
+	Create(size int, tenantId string, projectId string, flavorName string) (Disk, error)
 }
 
 type Finder interface {
-	Find(id int) (Disk, bool, error)
+	Find(id string) (Disk, bool, error)
 }
 
 type Disk interface {
-	ID() int
+	ID() string
 
 	Delete() error
 }
