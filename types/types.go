@@ -2,7 +2,14 @@ package types
 
 import (
 	"fmt"
+	"github.com/esxcloud/esxcloud-go-sdk/esxcloud"
 )
+
+type Context struct {
+	ECClient *esxcloud.Client
+}
+
+type ActionFn func(*Context, []interface{}) (interface{}, error)
 
 type BoshErrorType string
 
@@ -18,7 +25,7 @@ type Request struct {
 }
 
 type Response struct {
-	Result interface{}    `json:"result"`
+	Result interface{}    `json:"result,omitempty"`
 	Error  *ResponseError `json:"error,omitempty"`
 	Log    string         `json:"log,omitempty"`
 }

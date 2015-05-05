@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/esxcloud/bosh-esxcloud-cpi/stemcell"
 	. "github.com/esxcloud/bosh-esxcloud-cpi/types"
 	"io/ioutil"
 	"os"
@@ -12,12 +11,10 @@ import (
 	"strings"
 )
 
-type actionFn func([]interface{}) (interface{}, error)
-
 func main() {
-	actions := map[string]actionFn{
-		"create_stemcell": stemcell.Create,
-		"delete_stemcell": stemcell.Delete,
+	actions := map[string]ActionFn{
+		"create_stemcell": CreateStemcell,
+		"delete_stemcell": DeleteStemcell,
 	}
 
 	reqBytes, err := ioutil.ReadAll(os.Stdin)
@@ -31,11 +28,13 @@ func main() {
 		panic("Error deserializing JSON request from bosh")
 	}
 
-	res := dispatch(actions, strings.ToLower(req.Method), req.Arguments)
+	context := &Context{} // TODO: use real context
+
+	res := dispatch(context, actions, strings.ToLower(req.Method), req.Arguments)
 	os.Stdout.Write(res)
 }
 
-func dispatch(actions map[string]actionFn, method string, args []interface{}) (result []byte) {
+func dispatch(context *Context, actions map[string]ActionFn, method string, args []interface{}) (result []byte) {
 	// Attempt to recover from any panic that may occur during API calls
 	defer func() {
 		if r := recover(); r != nil {
@@ -47,7 +46,7 @@ func dispatch(actions map[string]actionFn, method string, args []interface{}) (r
 		}
 	}()
 	if fn, ok := actions[method]; ok {
-		res, err := fn(args)
+		res, err := fn(context, args)
 		if err != nil {
 			return createErrorResponse(err)
 		}
