@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	. "github.com/esxcloud/bosh-esxcloud-cpi/types"
+	"github.com/esxcloud/esxcloud-go-sdk/esxcloud"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -28,10 +30,39 @@ func main() {
 		panic("Error deserializing JSON request from bosh")
 	}
 
-	context := &Context{} // TODO: use real context
+	configPath := flag.String("configPath", "", "Path to CPI config file")
+
+	context, err := loadConfig(*configPath)
+	if err != nil {
+		panic(fmt.Sprintf("Unable to load CPI config from path '%s' with error '%v'", configPath, err))
+	}
 
 	res := dispatch(context, actions, strings.ToLower(req.Method), req.Arguments)
 	os.Stdout.Write(res)
+}
+
+type JsonConfig struct {
+	ESXCloud struct {
+		APIFE struct {
+			Hostname string `json:"Hostname"`
+			Port     int    `json:"Port"`
+		} `json:"APIFE"`
+	} `json:"ESXCloud"`
+}
+
+func loadConfig(filePath string) (ctx *Context, err error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return
+	}
+	config := JsonConfig{}
+	err = json.NewDecoder(file).Decode(&config)
+	if err != nil {
+		return
+	}
+	url := fmt.Sprintf("http://%s:%d", config.ESXCloud.APIFE.Hostname, config.ESXCloud.APIFE.Port)
+	ctx = &Context{ECClient: esxcloud.NewClient(url)}
+	return
 }
 
 func dispatch(context *Context, actions map[string]ActionFn, method string, args []interface{}) (result []byte) {
