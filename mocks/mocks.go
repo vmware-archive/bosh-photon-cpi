@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/esxcloud/bosh-esxcloud-cpi/types"
+	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
 	. "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
 )
 
@@ -43,7 +43,7 @@ func CreateResponder(status int, response string) Responder {
 	})
 }
 
-func GetResponse(data []byte) (res types.Response, err error) {
+func GetResponse(data []byte) (res cpi.Response, err error) {
 	err = json.Unmarshal(data, &res)
 	return
 }

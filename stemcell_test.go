@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
 	. "github.com/esxcloud/bosh-esxcloud-cpi/mocks"
-	"github.com/esxcloud/bosh-esxcloud-cpi/types"
 	ec "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -13,7 +13,7 @@ import (
 var _ = Describe("Stemcell", func() {
 	var (
 		server *httptest.Server
-		ctx    *types.Context
+		ctx    *cpi.Context
 	)
 
 	BeforeEach(func() {
@@ -21,7 +21,7 @@ var _ = Describe("Stemcell", func() {
 
 		Activate(true)
 		httpClient := &http.Client{Transport: DefaultMockTransport}
-		ctx = &types.Context{ECClient: ec.NewTestClient(server.URL, httpClient)}
+		ctx = &cpi.Context{Client: ec.NewTestClient(server.URL, httpClient)}
 	})
 
 	AfterEach(func() {
@@ -41,7 +41,7 @@ var _ = Describe("Stemcell", func() {
 			server.URL+"/v1/tasks/"+createTask.ID,
 			CreateResponder(200, ToJson(completedTask)))
 
-		actions := map[string]types.ActionFn{
+		actions := map[string]cpi.ActionFn{
 			"create_stemcell": CreateStemcell,
 		}
 		args := []interface{}{"./testdata/tty_tiny.ova"}
@@ -65,7 +65,7 @@ var _ = Describe("Stemcell", func() {
 			server.URL+"/v1/tasks/"+createTask.ID,
 			CreateResponder(200, ToJson(completedTask)))
 
-		actions := map[string]types.ActionFn{
+		actions := map[string]cpi.ActionFn{
 			"create_stemcell": CreateStemcell,
 		}
 		args := []interface{}{"./testdata/tty_tiny.ova"}
@@ -77,7 +77,7 @@ var _ = Describe("Stemcell", func() {
 	})
 
 	It("returns an error when stemcell file does not exist", func() {
-		actions := map[string]types.ActionFn{
+		actions := map[string]cpi.ActionFn{
 			"create_stemcell": CreateStemcell,
 		}
 		args := []interface{}{"a-file-that-does-not-exist"}
@@ -101,7 +101,7 @@ var _ = Describe("Stemcell", func() {
 			server.URL+"/v1/tasks/"+deleteTask.ID,
 			CreateResponder(200, ToJson(completedTask)))
 
-		actions := map[string]types.ActionFn{
+		actions := map[string]cpi.ActionFn{
 			"delete_stemcell": DeleteStemcell,
 		}
 		args := []interface{}{deleteTask.Entity.ID}
@@ -125,7 +125,7 @@ var _ = Describe("Stemcell", func() {
 			server.URL+"/v1/tasks/"+deleteTask.ID,
 			CreateResponder(200, ToJson(completedTask)))
 
-		actions := map[string]types.ActionFn{
+		actions := map[string]cpi.ActionFn{
 			"delete_stemcell": DeleteStemcell,
 		}
 		args := []interface{}{deleteTask.Entity.ID}

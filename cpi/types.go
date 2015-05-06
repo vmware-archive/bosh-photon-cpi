@@ -1,4 +1,4 @@
-package types
+package cpi
 
 import (
 	"fmt"
@@ -6,7 +6,20 @@ import (
 )
 
 type Context struct {
-	ECClient *esxcloud.Client
+	Client *esxcloud.Client
+	Config *Config
+}
+
+type Config struct {
+	ESXCloud *ESXCloudConfig `json:"ESXCloud"`
+}
+
+type ESXCloudConfig struct {
+	APIFE      string `json:"APIFE"`
+	ProjectID  string `json:"ProjectID"`
+	TenantID   string `json:"TenantID"`
+	DiskFlavor string `json:"DiskFlavor"`
+	VMFlavor   string `json:"VMFlavor"`
 }
 
 type ActionFn func(*Context, []interface{}) (interface{}, error)
