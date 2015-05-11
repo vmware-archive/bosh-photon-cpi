@@ -10,7 +10,7 @@ func CreateStemcell(ctx *cpi.Context, args []interface{}) (result interface{}, e
 	if !ok {
 		return nil, errors.New("Unexpected argument where image_path should be")
 	}
-	task, err := ctx.Client.Images.Create(imagePath)
+	task, err := ctx.Client.Images.CreateFromFile(imagePath)
 	if err != nil {
 		return
 	}
