@@ -9,6 +9,9 @@ import (
 )
 
 func CreateDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err error) {
+	if len(args) < 2 {
+		return nil, errors.New("Expected at least 2 arguments")
+	}
 	size, ok := args[0].(int)
 	if !ok {
 		return nil, errors.New("Unexpected argument where size should be")
@@ -41,6 +44,9 @@ func CreateDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 }
 
 func DeleteDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err error) {
+	if len(args) < 1 {
+		return nil, errors.New("Expected at least 1 argument")
+	}
 	diskCID, ok := args[0].(string)
 	if !ok {
 		return nil, errors.New("Unexpected argument where disk_cid should be")
@@ -57,6 +63,9 @@ func DeleteDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 }
 
 func HasDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err error) {
+	if len(args) < 1 {
+		return nil, errors.New("Expected at least 1 argument")
+	}
 	diskCID, ok := args[0].(string)
 	if !ok {
 		return nil, errors.New("Unexpected argument where disk_cid should be")
@@ -73,6 +82,9 @@ func HasDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err erro
 }
 
 func GetDisks(ctx *cpi.Context, args []interface{}) (result interface{}, err error) {
+	if len(args) < 1 {
+		return nil, errors.New("Expected at least 1 argument")
+	}
 	vmCID, ok := args[0].(string)
 	if !ok {
 		return nil, errors.New("Unexpected argument where vim_cid should be")
@@ -93,6 +105,9 @@ func GetDisks(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 }
 
 func AttachDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err error) {
+	if len(args) < 2 {
+		return nil, errors.New("Expected at least 2 arguments")
+	}
 	vmCID, ok := args[0].(string)
 	if !ok {
 		return nil, errors.New("Unexpected argument where vm_cid should be")
@@ -114,6 +129,9 @@ func AttachDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 }
 
 func DetachDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err error) {
+	if len(args) < 2 {
+		return nil, errors.New("Expected at least 2 arguments")
+	}
 	vmCID, ok := args[0].(string)
 	if !ok {
 		return nil, errors.New("Unexpected argument where vm_cid should be")

@@ -110,6 +110,28 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 		})
+		It("should return an error when given no arguments", func() {
+			actions := map[string]cpi.ActionFn{
+				"create_disk": CreateDisk,
+			}
+			args := []interface{}{}
+			res, err := GetResponse(dispatch(ctx, actions, "create_disk", args))
+
+			Expect(res.Result).Should(BeNil())
+			Expect(res.Error).ShouldNot(BeNil())
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		It("should return an error when given an invalid argument", func() {
+			actions := map[string]cpi.ActionFn{
+				"create_disk": CreateDisk,
+			}
+			args := []interface{}{"not-an-int"}
+			res, err := GetResponse(dispatch(ctx, actions, "create_disk", args))
+
+			Expect(res.Result).Should(BeNil())
+			Expect(res.Error).ShouldNot(BeNil())
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 	})
 
 	Describe("DeleteDisk", func() {
@@ -153,6 +175,28 @@ var _ = Describe("Disk", func() {
 				"delete_disk": DeleteDisk,
 			}
 			args := []interface{}{"fake-disk-id"}
+			res, err := GetResponse(dispatch(ctx, actions, "delete_disk", args))
+
+			Expect(res.Result).Should(BeNil())
+			Expect(res.Error).ShouldNot(BeNil())
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		It("should return an error when given no arguments", func() {
+			actions := map[string]cpi.ActionFn{
+				"delete_disk": DeleteDisk,
+			}
+			args := []interface{}{}
+			res, err := GetResponse(dispatch(ctx, actions, "delete_disk", args))
+
+			Expect(res.Result).Should(BeNil())
+			Expect(res.Error).ShouldNot(BeNil())
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		It("should return an error when given an invalid argument", func() {
+			actions := map[string]cpi.ActionFn{
+				"delete_disk": DeleteDisk,
+			}
+			args := []interface{}{5}
 			res, err := GetResponse(dispatch(ctx, actions, "delete_disk", args))
 
 			Expect(res.Result).Should(BeNil())
@@ -210,6 +254,28 @@ var _ = Describe("Disk", func() {
 				"has_disk": HasDisk,
 			}
 			args := []interface{}{"fake-disk-id"}
+			res, err := GetResponse(dispatch(ctx, actions, "has_disk", args))
+
+			Expect(res.Result).Should(BeNil())
+			Expect(res.Error).ShouldNot(BeNil())
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		It("should return an error when given no arguments", func() {
+			actions := map[string]cpi.ActionFn{
+				"has_disk": HasDisk,
+			}
+			args := []interface{}{}
+			res, err := GetResponse(dispatch(ctx, actions, "has_disk", args))
+
+			Expect(res.Result).Should(BeNil())
+			Expect(res.Error).ShouldNot(BeNil())
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		It("should return an error when given an invalid argument", func() {
+			actions := map[string]cpi.ActionFn{
+				"has_disk": HasDisk,
+			}
+			args := []interface{}{5}
 			res, err := GetResponse(dispatch(ctx, actions, "has_disk", args))
 
 			Expect(res.Result).Should(BeNil())

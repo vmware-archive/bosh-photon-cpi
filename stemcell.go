@@ -6,6 +6,9 @@ import (
 )
 
 func CreateStemcell(ctx *cpi.Context, args []interface{}) (result interface{}, err error) {
+	if len(args) < 1 {
+		return nil, errors.New("Expected at least 1 argument")
+	}
 	imagePath, ok := args[0].(string)
 	if !ok {
 		return nil, errors.New("Unexpected argument where image_path should be")
@@ -22,6 +25,9 @@ func CreateStemcell(ctx *cpi.Context, args []interface{}) (result interface{}, e
 }
 
 func DeleteStemcell(ctx *cpi.Context, args []interface{}) (result interface{}, err error) {
+	if len(args) < 1 {
+		return nil, errors.New("Expected at least 1 argument")
+	}
 	stemcellCID, ok := args[0].(string)
 	if !ok {
 		return nil, errors.New("Unexpected argument where stemcell_cid should be")

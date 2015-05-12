@@ -28,111 +28,158 @@ var _ = Describe("Stemcell", func() {
 		server.Close()
 	})
 
-	It("returns a stemcell ID for Create", func() {
-		createTask := &ec.Task{Operation: "CREATE_IMAGE", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-image-id"}}
-		completedTask := &ec.Task{Operation: "CREATE_IMAGE", State: "COMPLETED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-image-id"}}
+	Describe("Create", func() {
+		It("returns a stemcell ID for Create", func() {
+			createTask := &ec.Task{Operation: "CREATE_IMAGE", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-image-id"}}
+			completedTask := &ec.Task{Operation: "CREATE_IMAGE", State: "COMPLETED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-image-id"}}
 
-		RegisterResponder(
-			"POST",
-			server.URL+"/v1/images",
-			CreateResponder(200, ToJson(createTask)))
-		RegisterResponder(
-			"GET",
-			server.URL+"/v1/tasks/"+createTask.ID,
-			CreateResponder(200, ToJson(completedTask)))
+			RegisterResponder(
+				"POST",
+				server.URL+"/v1/images",
+				CreateResponder(200, ToJson(createTask)))
+			RegisterResponder(
+				"GET",
+				server.URL+"/v1/tasks/"+createTask.ID,
+				CreateResponder(200, ToJson(completedTask)))
 
-		actions := map[string]cpi.ActionFn{
-			"create_stemcell": CreateStemcell,
-		}
-		args := []interface{}{"./testdata/tty_tiny.ova"}
-		res, err := GetResponse(dispatch(ctx, actions, "create_stemcell", args))
+			actions := map[string]cpi.ActionFn{
+				"create_stemcell": CreateStemcell,
+			}
+			args := []interface{}{"./testdata/tty_tiny.ova"}
+			res, err := GetResponse(dispatch(ctx, actions, "create_stemcell", args))
 
-		Expect(res.Result).Should(Equal(completedTask.Entity.ID))
-		Expect(res.Error).Should(BeNil())
-		Expect(err).ShouldNot(HaveOccurred())
+			Expect(res.Result).Should(Equal(completedTask.Entity.ID))
+			Expect(res.Error).Should(BeNil())
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("returns an error when APIfe returns a 500", func() {
+			createTask := &ec.Task{Operation: "CREATE_IMAGE", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-image-id"}}
+			completedTask := &ec.Task{Operation: "CREATE_IMAGE", State: "COMPLETED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-image-id"}}
+
+			RegisterResponder(
+				"POST",
+				server.URL+"/v1/images",
+				CreateResponder(500, ToJson(createTask)))
+			RegisterResponder(
+				"GET",
+				server.URL+"/v1/tasks/"+createTask.ID,
+				CreateResponder(200, ToJson(completedTask)))
+
+			actions := map[string]cpi.ActionFn{
+				"create_stemcell": CreateStemcell,
+			}
+			args := []interface{}{"./testdata/tty_tiny.ova"}
+			res, err := GetResponse(dispatch(ctx, actions, "create_stemcell", args))
+
+			Expect(res.Result).Should(BeNil())
+			Expect(res.Error).ShouldNot(BeNil())
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("returns an error when stemcell file does not exist", func() {
+			actions := map[string]cpi.ActionFn{
+				"create_stemcell": CreateStemcell,
+			}
+			args := []interface{}{"a-file-that-does-not-exist"}
+			res, err := GetResponse(dispatch(ctx, actions, "create_stemcell", args))
+
+			Expect(res.Result).Should(BeNil())
+			Expect(res.Error).ShouldNot(BeNil())
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		It("should return an error when given no arguments", func() {
+			actions := map[string]cpi.ActionFn{
+				"create_stemcell": CreateStemcell,
+			}
+			args := []interface{}{}
+			res, err := GetResponse(dispatch(ctx, actions, "create_stemcell", args))
+
+			Expect(res.Result).Should(BeNil())
+			Expect(res.Error).ShouldNot(BeNil())
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		It("should return an error when given an invalid argument", func() {
+			actions := map[string]cpi.ActionFn{
+				"create_stemcell": CreateStemcell,
+			}
+			args := []interface{}{5}
+			res, err := GetResponse(dispatch(ctx, actions, "create_stemcell", args))
+
+			Expect(res.Result).Should(BeNil())
+			Expect(res.Error).ShouldNot(BeNil())
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 	})
 
-	It("returns an error when APIfe returns a 500", func() {
-		createTask := &ec.Task{Operation: "CREATE_IMAGE", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-image-id"}}
-		completedTask := &ec.Task{Operation: "CREATE_IMAGE", State: "COMPLETED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-image-id"}}
+	Describe("Delete", func() {
+		It("returns nothing for stemcell delete", func() {
+			deleteTask := &ec.Task{Operation: "DELETE_IMAGE", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-image-id"}}
+			completedTask := &ec.Task{Operation: "DELETE_IMAGE", State: "COMPLETED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-image-id"}}
 
-		RegisterResponder(
-			"POST",
-			server.URL+"/v1/images",
-			CreateResponder(500, ToJson(createTask)))
-		RegisterResponder(
-			"GET",
-			server.URL+"/v1/tasks/"+createTask.ID,
-			CreateResponder(200, ToJson(completedTask)))
+			RegisterResponder(
+				"DELETE",
+				server.URL+"/v1/images/"+deleteTask.Entity.ID,
+				CreateResponder(200, ToJson(deleteTask)))
+			RegisterResponder(
+				"GET",
+				server.URL+"/v1/tasks/"+deleteTask.ID,
+				CreateResponder(200, ToJson(completedTask)))
 
-		actions := map[string]cpi.ActionFn{
-			"create_stemcell": CreateStemcell,
-		}
-		args := []interface{}{"./testdata/tty_tiny.ova"}
-		res, err := GetResponse(dispatch(ctx, actions, "create_stemcell", args))
+			actions := map[string]cpi.ActionFn{
+				"delete_stemcell": DeleteStemcell,
+			}
+			args := []interface{}{deleteTask.Entity.ID}
+			res, err := GetResponse(dispatch(ctx, actions, "delete_stemcell", args))
 
-		Expect(res.Result).Should(BeNil())
-		Expect(res.Error).ShouldNot(BeNil())
-		Expect(err).ShouldNot(HaveOccurred())
-	})
+			Expect(res.Result).Should(BeNil())
+			Expect(res.Error).Should(BeNil())
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		It("returns an error for missing stemcell delete", func() {
+			deleteTask := &ec.Task{Operation: "DELETE_IMAGE", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-image-id"}}
+			completedTask := &ec.Task{Operation: "DELETE_IMAGE", State: "COMPLETED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-image-id"}}
 
-	It("returns an error when stemcell file does not exist", func() {
-		actions := map[string]cpi.ActionFn{
-			"create_stemcell": CreateStemcell,
-		}
-		args := []interface{}{"a-file-that-does-not-exist"}
-		res, err := GetResponse(dispatch(ctx, actions, "create_stemcell", args))
+			RegisterResponder(
+				"DELETE",
+				server.URL+"/v1/images/"+deleteTask.Entity.ID,
+				CreateResponder(404, ToJson(deleteTask)))
+			RegisterResponder(
+				"GET",
+				server.URL+"/v1/tasks/"+deleteTask.ID,
+				CreateResponder(200, ToJson(completedTask)))
 
-		Expect(res.Result).Should(BeNil())
-		Expect(res.Error).ShouldNot(BeNil())
-		Expect(err).ShouldNot(HaveOccurred())
-	})
+			actions := map[string]cpi.ActionFn{
+				"delete_stemcell": DeleteStemcell,
+			}
+			args := []interface{}{deleteTask.Entity.ID}
+			res, err := GetResponse(dispatch(ctx, actions, "delete_stemcell", args))
 
-	It("returns nothing for stemcell delete", func() {
-		deleteTask := &ec.Task{Operation: "DELETE_IMAGE", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-image-id"}}
-		completedTask := &ec.Task{Operation: "DELETE_IMAGE", State: "COMPLETED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-image-id"}}
+			Expect(res.Result).Should(BeNil())
+			Expect(res.Error).ShouldNot(BeNil())
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		It("should return an error when given no arguments", func() {
+			actions := map[string]cpi.ActionFn{
+				"delete_stemcell": DeleteStemcell,
+			}
+			args := []interface{}{}
+			res, err := GetResponse(dispatch(ctx, actions, "delete_stemcell", args))
 
-		RegisterResponder(
-			"DELETE",
-			server.URL+"/v1/images/"+deleteTask.Entity.ID,
-			CreateResponder(200, ToJson(deleteTask)))
-		RegisterResponder(
-			"GET",
-			server.URL+"/v1/tasks/"+deleteTask.ID,
-			CreateResponder(200, ToJson(completedTask)))
+			Expect(res.Result).Should(BeNil())
+			Expect(res.Error).ShouldNot(BeNil())
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		It("should return an error when given an invalid argument", func() {
+			actions := map[string]cpi.ActionFn{
+				"delete_stemcell": DeleteStemcell,
+			}
+			args := []interface{}{5}
+			res, err := GetResponse(dispatch(ctx, actions, "delete_stemcell", args))
 
-		actions := map[string]cpi.ActionFn{
-			"delete_stemcell": DeleteStemcell,
-		}
-		args := []interface{}{deleteTask.Entity.ID}
-		res, err := GetResponse(dispatch(ctx, actions, "delete_stemcell", args))
-
-		Expect(res.Result).Should(BeNil())
-		Expect(res.Error).Should(BeNil())
-		Expect(err).ShouldNot(HaveOccurred())
-	})
-
-	It("returns an error for missing stemcell delete", func() {
-		deleteTask := &ec.Task{Operation: "DELETE_IMAGE", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-image-id"}}
-		completedTask := &ec.Task{Operation: "DELETE_IMAGE", State: "COMPLETED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-image-id"}}
-
-		RegisterResponder(
-			"DELETE",
-			server.URL+"/v1/images/"+deleteTask.Entity.ID,
-			CreateResponder(404, ToJson(deleteTask)))
-		RegisterResponder(
-			"GET",
-			server.URL+"/v1/tasks/"+deleteTask.ID,
-			CreateResponder(200, ToJson(completedTask)))
-
-		actions := map[string]cpi.ActionFn{
-			"delete_stemcell": DeleteStemcell,
-		}
-		args := []interface{}{deleteTask.Entity.ID}
-		res, err := GetResponse(dispatch(ctx, actions, "delete_stemcell", args))
-
-		Expect(res.Result).Should(BeNil())
-		Expect(res.Error).ShouldNot(BeNil())
-		Expect(err).ShouldNot(HaveOccurred())
+			Expect(res.Result).Should(BeNil())
+			Expect(res.Error).ShouldNot(BeNil())
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 	})
 })
