@@ -266,4 +266,75 @@ var _ = Describe("VMs", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 	})
+
+	Describe("RestartVM", func() {
+		It("should return nothing when successful", func() {
+			restartTask := &ec.Task{Operation: "restart_vm", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
+			completedTask := &ec.Task{Operation: "restart_vm", State: "COMPLETED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
+
+			RegisterResponder(
+				"POST",
+				server.URL+"/v1/vms/"+restartTask.Entity.ID+"/operations",
+				CreateResponder(200, ToJson(restartTask)))
+			RegisterResponder(
+				"GET",
+				server.URL+"/v1/tasks/"+restartTask.ID,
+				CreateResponder(200, ToJson(completedTask)))
+
+			actions := map[string]cpi.ActionFn{
+				"restart_vm": RestartVM,
+			}
+			args := []interface{}{"fake-vm-id"}
+			res, err := GetResponse(dispatch(ctx, actions, "restart_vm", args))
+
+			Expect(res.Result).Should(BeNil())
+			Expect(res.Error).Should(BeNil())
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		It("should return an error when VM not found", func() {
+			restartTask := &ec.Task{Operation: "restart_vm", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
+			completedTask := &ec.Task{Operation: "restart_vm", State: "COMPLETED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
+
+			RegisterResponder(
+				"POST",
+				server.URL+"/v1/vms/"+restartTask.Entity.ID+"/operations",
+				CreateResponder(404, ToJson(restartTask)))
+			RegisterResponder(
+				"GET",
+				server.URL+"/v1/tasks/"+restartTask.ID,
+				CreateResponder(200, ToJson(completedTask)))
+
+			actions := map[string]cpi.ActionFn{
+				"restart_vm": RestartVM,
+			}
+			args := []interface{}{"fake-vm-id"}
+			res, err := GetResponse(dispatch(ctx, actions, "restart_vm", args))
+
+			Expect(res.Result).Should(BeNil())
+			Expect(res.Error).ShouldNot(BeNil())
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		It("should return an error when given no arguments", func() {
+			actions := map[string]cpi.ActionFn{
+				"restart_vm": RestartVM,
+			}
+			args := []interface{}{}
+			res, err := GetResponse(dispatch(ctx, actions, "restart_vm", args))
+
+			Expect(res.Result).Should(BeNil())
+			Expect(res.Error).ShouldNot(BeNil())
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		It("should return an error when given an invalid argument", func() {
+			actions := map[string]cpi.ActionFn{
+				"restart_vm": RestartVM,
+			}
+			args := []interface{}{5}
+			res, err := GetResponse(dispatch(ctx, actions, "restart_vm", args))
+
+			Expect(res.Result).Should(BeNil())
+			Expect(res.Error).ShouldNot(BeNil())
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+	})
 })

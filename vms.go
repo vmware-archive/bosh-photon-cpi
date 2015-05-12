@@ -76,3 +76,23 @@ func HasVM(ctx *cpi.Context, args []interface{}) (result interface{}, err error)
 	}
 	return true, nil
 }
+
+func RestartVM(ctx *cpi.Context, args []interface{}) (result interface{}, err error) {
+	if len(args) < 1 {
+		return nil, errors.New("Expected at least 1 argument")
+	}
+	vmCID, ok := args[0].(string)
+	if !ok {
+		return nil, errors.New("Unexpected argument where vm_cid should be")
+	}
+	op := &ec.VmOperation{Operation: "RESTART_VM"}
+	task, err := ctx.Client.VMs.Operation(vmCID, op)
+	if err != nil {
+		return
+	}
+	_, err = ctx.Client.Tasks.Wait(task.ID)
+	if err != nil {
+		return
+	}
+	return nil, nil
+}

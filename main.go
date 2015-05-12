@@ -25,6 +25,7 @@ func main() {
 		"create_vm":       CreateVM,
 		"delete_vm":       DeleteVM,
 		"has_vm":          HasVM,
+		"restart_vm":      RestartVM,
 	}
 
 	reqBytes, err := ioutil.ReadAll(os.Stdin)
