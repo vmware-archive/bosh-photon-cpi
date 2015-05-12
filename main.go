@@ -17,6 +17,14 @@ func main() {
 	actions := map[string]cpi.ActionFn{
 		"create_stemcell": CreateStemcell,
 		"delete_stemcell": DeleteStemcell,
+		"create_disk":     CreateDisk,
+		"delete_disk":     DeleteDisk,
+		"has_disk":        HasDisk,
+		"attach_disk":     AttachDisk,
+		"detach_disk":     DetachDisk,
+		"create_vm":       CreateVM,
+		"delete_vm":       DeleteVM,
+		"has_vm":          HasVM,
 	}
 
 	reqBytes, err := ioutil.ReadAll(os.Stdin)

@@ -8,6 +8,5 @@ import (
 
 func TestDispatch(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Dispatch Suite")
-	RunSpecs(t, "Stemcell Suite")
+	RunSpecs(t, "Main Suite")
 }

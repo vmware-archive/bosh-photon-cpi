@@ -19,7 +19,6 @@ type ESXCloudConfig struct {
 	ProjectID  string `json:"ProjectID"`
 	TenantID   string `json:"TenantID"`
 	DiskFlavor string `json:"DiskFlavor"`
-	VMFlavor   string `json:"VMFlavor"`
 }
 
 type ActionFn func(*Context, []interface{}) (interface{}, error)
