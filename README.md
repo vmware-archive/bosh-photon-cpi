@@ -24,8 +24,13 @@ This is a sample of how ESXCloud specific properties are used in a  BOSH deploym
     ...
 
     properties:
+	  ntp:
+	  - 192.168.21.10
+	  cpi:
+	    agent:
+	      mbus: nats://nats:nats-password@192.168.21.4:4222
 	  esxcloud:
-	    url: https://192.168.10.1:8080
+	    target: https://192.168.10.1:8080
 	    user: dev
 	    password: pwd
 	    tenant: dev
