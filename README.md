@@ -28,7 +28,6 @@ This is a sample of how ESXCloud specific properties are used in a  BOSH deploym
 	    url: https://192.168.10.1:8080
 	    user: dev
 	    password: pwd
-	    entities:
-	      tenant: dev
-	      project: dev
-	      description: Bosh on ESXCloud
+	    tenant: dev
+	    project: dev
+	    description: Bosh on ESXCloud
