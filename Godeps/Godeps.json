@@ -1,25 +1,11 @@
 {
 	"ImportPath": "github.com/esxcloud/bosh-esxcloud-cpi",
 	"GoVersion": "go1.4.2",
-	"Packages": [
-		"./disk/..."
-	],
 	"Deps": [
 		{
-			"ImportPath": "github.com/cloudfoundry/bosh-agent/errors",
-			"Rev": "f138939456bb8c72c2c15bc1f287d18e0fc65a70"
-		},
-		{
-			"ImportPath": "github.com/cloudfoundry/bosh-agent/logger",
-			"Rev": "f138939456bb8c72c2c15bc1f287d18e0fc65a70"
-		},
-		{
-			"ImportPath": "github.com/cloudfoundry/bosh-agent/system",
-			"Rev": "f138939456bb8c72c2c15bc1f287d18e0fc65a70"
-		},
-		{
-			"ImportPath": "github.com/nu7hatch/gouuid",
-			"Rev": "179d4d0c4d8d407a32af483c2354df1d2c91e6c3"
+			"ImportPath": "github.com/esxcloud/esxcloud-go-sdk/esxcloud",
+			"Comment": "PROMOTED-2-1-ga34b1d3",
+			"Rev": "a34b1d34ff049ffec85874d518ab0f23d766f37a"
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",

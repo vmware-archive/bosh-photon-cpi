@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/esxcloud/bosh-esxcloud-cpi/cmd"
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
 	. "github.com/esxcloud/bosh-esxcloud-cpi/mocks"
 	ec "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
@@ -8,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	"net/http"
 	"net/http/httptest"
+	"runtime"
 )
 
 var _ = Describe("VMs", func() {
@@ -19,6 +21,12 @@ var _ = Describe("VMs", func() {
 
 	BeforeEach(func() {
 		server = NewMockServer()
+		var runner cmd.Runner
+		if runtime.GOOS == "linux" {
+			runner = cmd.NewRunner()
+		} else {
+			runner = &fakeRunner{}
+		}
 
 		Activate(true)
 		httpClient := &http.Client{Transport: DefaultMockTransport}
@@ -26,10 +34,12 @@ var _ = Describe("VMs", func() {
 			Client: ec.NewTestClient(server.URL, httpClient),
 			Config: &cpi.Config{
 				ESXCloud: &cpi.ESXCloudConfig{
-					APIFE:     server.URL,
+					Target:    server.URL,
 					ProjectID: "fake-project-id",
 				},
+				Agent: &cpi.AgentConfig{Mbus: "fake-mbus", NTP: []string{"fake-ntp"}},
 			},
+			Runner: runner,
 		}
 
 		projID = ctx.Config.ESXCloud.ProjectID
@@ -44,6 +54,9 @@ var _ = Describe("VMs", func() {
 			createTask := &ec.Task{Operation: "CREATE_VM", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
 			completedTask := &ec.Task{Operation: "CREATE_VM", State: "COMPLETED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
 
+			isoTask := &ec.Task{Operation: "ATTACH_ISO", State: "QUEUED", ID: "fake-iso-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
+			isoCompletedTask := &ec.Task{Operation: "ATTACH_ISO", State: "COMPLETED", ID: "fake-iso-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
+
 			RegisterResponder(
 				"POST",
 				server.URL+"/v1/projects/"+projID+"/vms",
@@ -52,11 +65,26 @@ var _ = Describe("VMs", func() {
 				"GET",
 				server.URL+"/v1/tasks/"+createTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
+			RegisterResponder(
+				"POST",
+				server.URL+"/v1/vms/"+createTask.Entity.ID+"/attach_iso",
+				CreateResponder(200, ToJson(isoTask)))
+			RegisterResponder(
+				"GET",
+				server.URL+"/v1/tasks/"+isoTask.ID,
+				CreateResponder(200, ToJson(isoCompletedTask)))
 
 			actions := map[string]cpi.ActionFn{
 				"create_vm": CreateVM,
 			}
-			args := []interface{}{"unused-agent-id", "fake-stemcell-id", map[string]interface{}{"flavor": "fake-flavor"}}
+			args := []interface{}{
+				"agent-id",
+				"fake-stemcell-id",
+				map[string]interface{}{"flavor": "fake-flavor"}, // cloud_properties
+				[]interface{}{},                                 // networks
+				[]string{},                                      // disk_cids
+				map[string]interface{}{},                        // environment
+			}
 			res, err := GetResponse(dispatch(ctx, actions, "create_vm", args))
 
 			Expect(res.Result).Should(Equal(completedTask.Entity.ID))
@@ -79,7 +107,7 @@ var _ = Describe("VMs", func() {
 			actions := map[string]cpi.ActionFn{
 				"create_vm": CreateVM,
 			}
-			args := []interface{}{"unused-agent-id", "fake-stemcell-id", map[string]interface{}{"flavor": "fake-flavor"}}
+			args := []interface{}{"agent-id", "fake-stemcell-id", map[string]interface{}{"flavor": "fake-flavor"}}
 			res, err := GetResponse(dispatch(ctx, actions, "create_vm", args))
 
 			Expect(res.Result).Should(BeNil())
@@ -90,7 +118,7 @@ var _ = Describe("VMs", func() {
 			actions := map[string]cpi.ActionFn{
 				"create_vm": CreateVM,
 			}
-			args := []interface{}{"unused-agent-id", "fake-stemcell-id", map[string]interface{}{"flavor": 123}}
+			args := []interface{}{"agent-id", "fake-stemcell-id", map[string]interface{}{"flavor": 123}}
 			res, err := GetResponse(dispatch(ctx, actions, "create_vm", args))
 
 			Expect(res.Result).Should(BeNil())
@@ -101,7 +129,7 @@ var _ = Describe("VMs", func() {
 			actions := map[string]cpi.ActionFn{
 				"create_vm": CreateVM,
 			}
-			args := []interface{}{"unused-agent-id", "fake-stemcell-id", map[string]interface{}{}}
+			args := []interface{}{"agent-id", "fake-stemcell-id", map[string]interface{}{}}
 			res, err := GetResponse(dispatch(ctx, actions, "create_vm", args))
 
 			Expect(res.Result).Should(BeNil())
@@ -112,7 +140,7 @@ var _ = Describe("VMs", func() {
 			actions := map[string]cpi.ActionFn{
 				"create_vm": CreateVM,
 			}
-			args := []interface{}{"unused-agent-id", "fake-stemcell-id"}
+			args := []interface{}{"agent-id", "fake-stemcell-id"}
 			res, err := GetResponse(dispatch(ctx, actions, "create_vm", args))
 
 			Expect(res.Result).Should(BeNil())

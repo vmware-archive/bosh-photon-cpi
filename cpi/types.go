@@ -2,22 +2,30 @@ package cpi
 
 import (
 	"fmt"
+	"github.com/esxcloud/bosh-esxcloud-cpi/cmd"
 	"github.com/esxcloud/esxcloud-go-sdk/esxcloud"
 )
 
 type Context struct {
 	Client *esxcloud.Client
 	Config *Config
+	Runner cmd.Runner
 }
 
 type Config struct {
-	ESXCloud *ESXCloudConfig `json:"ESXCloud"`
+	ESXCloud *ESXCloudConfig `json:"esxcloud"`
+	Agent    *AgentConfig    `json:"agent"`
+}
+
+type AgentConfig struct {
+	Mbus string   `json:"mbus"`
+	NTP  []string `json:"ntp"`
 }
 
 type ESXCloudConfig struct {
-	APIFE      string `json:"APIFE"`
-	ProjectID  string `json:"ProjectID"`
-	TenantID   string `json:"TenantID"`
+	Target     string `json:"target"`
+	ProjectID  string `json:"project"`
+	TenantID   string `json:"tenant"`
 	DiskFlavor string `json:"DiskFlavor"`
 }
 
@@ -73,4 +81,29 @@ func (e boshError) Error() string {
 
 func NewBoshError(errorType BoshErrorType, canRetry bool, format string, args ...interface{}) error {
 	return &boshError{errorType, canRetry, fmt.Sprintf(format, args...)}
+}
+
+type Network struct {
+	Type            string                 `json:"type"`
+	IP              string                 `json:"ip"`
+	Netmask         string                 `json:"netmask"`
+	Gateway         string                 `json:"gateway"`
+	DNS             []string               `json:"dns"`
+	Default         []string               `json:"default"`
+	MAC             string                 `json:"mac"`
+	CloudProperties map[string]interface{} `json:"cloud_properties"`
+}
+
+type AgentEnv struct {
+	AgentID  string                 `json:"agent_id"`
+	VM       VMSpec                 `json:"vm"`
+	Mbus     string                 `json:"mbus"`
+	NTP      []string               `json:"ntp"`
+	Networks []interface{}          `json:"networks"`
+	Env      map[string]interface{} `json:"env"`
+}
+
+type VMSpec struct {
+	Name string `json:"name"`
+	ID   string `json:"id"`
 }

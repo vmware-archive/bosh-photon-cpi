@@ -26,7 +26,7 @@ var _ = Describe("Disk", func() {
 			Client: ec.NewTestClient(server.URL, httpClient),
 			Config: &cpi.Config{
 				ESXCloud: &cpi.ESXCloudConfig{
-					APIFE:      server.URL,
+					Target:     server.URL,
 					DiskFlavor: "test-disk-flavor",
 					ProjectID:  "fake-project-id",
 				},

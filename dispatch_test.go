@@ -82,7 +82,7 @@ var _ = Describe("Dispatch", func() {
 			panic(err)
 		}
 		configPath = configFile.Name()
-		jsonConfig := `{"ESXCloud":{"APIFE":"http://none:123"}}`
+		jsonConfig := `{"esxcloud":{"Target":"http://none:123"}}`
 		configFile.WriteString(jsonConfig)
 
 		context, err := loadConfig(configPath)

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/esxcloud/bosh-esxcloud-cpi/cmd"
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
 	"github.com/esxcloud/esxcloud-go-sdk/esxcloud"
 	"io/ioutil"
@@ -61,7 +62,7 @@ func loadConfig(filePath string) (ctx *cpi.Context, err error) {
 	if err != nil {
 		return
 	}
-	ctx = &cpi.Context{Client: esxcloud.NewClient(config.ESXCloud.APIFE), Config: config}
+	ctx = &cpi.Context{Client: esxcloud.NewClient(config.ESXCloud.Target), Config: config, Runner: cmd.NewRunner()}
 	return
 }
 

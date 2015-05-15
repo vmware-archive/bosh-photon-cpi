@@ -2,14 +2,21 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
 	ec "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
 	"net/http"
+	"os"
 )
 
 func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err error) {
-	if len(args) < 3 {
-		return nil, errors.New("Expected at least 3 arguments")
+	if len(args) < 6 {
+		return nil, errors.New("Expected at least 6 arguments")
+	}
+	fmt.Println(1)
+	agentID, ok := args[0].(string)
+	if !ok {
+		return nil, errors.New("Unexpected argument where agent_id should be")
 	}
 	stemcellCID, ok := args[1].(string)
 	if !ok {
@@ -23,20 +30,48 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 	if !ok {
 		return nil, errors.New("Property 'flavor' on cloud_properties is not a string")
 	}
+	networks, ok := args[3].([]interface{})
+	if !ok {
+		return nil, errors.New("Unexpected argument where networks should be")
+	}
+	// Ignore args[4] for now, which is disk_cids
+	env, ok := args[5].(map[string]interface{})
+	if !ok {
+		return nil, errors.New("Unexpected argument where env should be")
+	}
 
 	spec := &ec.VmCreateSpec{
+		Name:          "bosh-vm",
 		Flavor:        flavor,
 		SourceImageID: stemcellCID,
 	}
-	task, err := ctx.Client.Projects.CreateVM(ctx.Config.ESXCloud.ProjectID, spec)
+	vmTask, err := ctx.Client.Projects.CreateVM(ctx.Config.ESXCloud.ProjectID, spec)
 	if err != nil {
 		return
 	}
-	task, err = ctx.Client.Tasks.Wait(task.ID)
+	vmTask, err = ctx.Client.Tasks.Wait(vmTask.ID)
 	if err != nil {
 		return
 	}
-	return task.Entity.ID, nil
+
+	// Create and attach agent env ISO file
+	envJson := createAgentEnv(ctx, agentID, vmTask.Entity.ID, spec.Name, networks, env)
+	isoPath, err := createEnvISO(envJson, ctx.Runner)
+	if err != nil {
+		return
+	}
+	defer os.Remove(isoPath)
+
+	attachTask, err := ctx.Client.VMs.AttachISO(vmTask.Entity.ID, isoPath)
+	if err != nil {
+		return
+	}
+	attachTask, err = ctx.Client.Tasks.Wait(attachTask.ID)
+	if err != nil {
+		return
+	}
+
+	return vmTask.Entity.ID, nil
 }
 
 func DeleteVM(ctx *cpi.Context, args []interface{}) (result interface{}, err error) {
