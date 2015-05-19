@@ -26,9 +26,8 @@ var _ = Describe("Disk", func() {
 			Client: ec.NewTestClient(server.URL, httpClient),
 			Config: &cpi.Config{
 				ESXCloud: &cpi.ESXCloudConfig{
-					Target:     server.URL,
-					DiskFlavor: "test-disk-flavor",
-					ProjectID:  "fake-project-id",
+					Target:    server.URL,
+					ProjectID: "fake-project-id",
 				},
 			},
 		}
@@ -57,7 +56,7 @@ var _ = Describe("Disk", func() {
 			actions := map[string]cpi.ActionFn{
 				"create_disk": CreateDisk,
 			}
-			args := []interface{}{2500, "fake-vm-id"}
+			args := []interface{}{2500, map[string]interface{}{"flavor": "disk-flavor"}, "fake-vm-id"}
 			res, err := GetResponse(dispatch(ctx, actions, "create_disk", args))
 
 			Expect(res.Result).Should(Equal(completedTask.Entity.ID))
@@ -80,7 +79,7 @@ var _ = Describe("Disk", func() {
 			actions := map[string]cpi.ActionFn{
 				"create_disk": CreateDisk,
 			}
-			args := []interface{}{0, "fake-vm-id"}
+			args := []interface{}{0, map[string]interface{}{"flavor": "disk-flavor"}, "fake-vm-id"}
 			res, err := GetResponse(dispatch(ctx, actions, "create_disk", args))
 
 			Expect(res.Result).Should(BeNil())
@@ -103,7 +102,7 @@ var _ = Describe("Disk", func() {
 			actions := map[string]cpi.ActionFn{
 				"create_disk": CreateDisk,
 			}
-			args := []interface{}{2500, "fake-vm-id"}
+			args := []interface{}{2500, map[string]interface{}{"flavor": "disk-flavor"}, "fake-vm-id"}
 			res, err := GetResponse(dispatch(ctx, actions, "create_disk", args))
 
 			Expect(res.Result).Should(BeNil())

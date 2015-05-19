@@ -9,8 +9,8 @@ import (
 )
 
 func CreateDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err error) {
-	if len(args) < 2 {
-		return nil, errors.New("Expected at least 2 arguments")
+	if len(args) < 3 {
+		return nil, errors.New("Expected at least 3 arguments")
 	}
 	size, ok := args[0].(int)
 	if !ok {
@@ -20,13 +20,21 @@ func CreateDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 	if size < 1 {
 		return nil, errors.New("Must provide a size in MiB that rounds up to at least 1 GiB for esxcloud")
 	}
-	vmCID, ok := args[1].(string)
+	cloudProps, ok := args[1].(map[string]interface{})
+	if !ok {
+		return nil, errors.New("Unexpected argument where cloud_properties should be")
+	}
+	flavor, ok := cloudProps["flavor"].(string)
+	if !ok {
+		return nil, errors.New("Property 'flavor' on cloud_properties is not a string")
+	}
+	vmCID, ok := args[2].(string)
 	if !ok {
 		return nil, errors.New("Unexpected argument where vm_cid should be")
 	}
 
 	diskSpec := &ec.DiskCreateSpec{
-		Flavor:     ctx.Config.ESXCloud.DiskFlavor,
+		Flavor:     flavor,
 		Kind:       "persistent-disk",
 		CapacityGB: size,
 		Name:       "disk-for-vm-" + vmCID,

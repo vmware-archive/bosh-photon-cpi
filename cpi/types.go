@@ -23,10 +23,9 @@ type AgentConfig struct {
 }
 
 type ESXCloudConfig struct {
-	Target     string `json:"target"`
-	ProjectID  string `json:"project"`
-	TenantID   string `json:"tenant"`
-	DiskFlavor string `json:"DiskFlavor"`
+	Target    string `json:"target"`
+	ProjectID string `json:"project"`
+	TenantID  string `json:"tenant"`
 }
 
 type ActionFn func(*Context, []interface{}) (interface{}, error)
