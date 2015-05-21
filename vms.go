@@ -26,9 +26,13 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 	if !ok {
 		return nil, errors.New("Unexpected argument where cloud_properties should be")
 	}
-	flavor, ok := cloudProps["flavor"].(string)
+	vmFlavor, ok := cloudProps["vm_flavor"].(string)
 	if !ok {
-		return nil, errors.New("Property 'flavor' on cloud_properties is not a string")
+		return nil, errors.New("Property 'vm_flavor' on cloud_properties is not a string or is not present")
+	}
+	diskFlavor, ok := cloudProps["disk_flavor"].(string)
+	if !ok {
+		return nil, errors.New("Property 'disk_flavor' on cloud_properties is not a string or is not present")
 	}
 	networks, ok := args[3].([]interface{})
 	if !ok {
@@ -42,8 +46,18 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 
 	spec := &ec.VmCreateSpec{
 		Name:          "bosh-vm",
-		Flavor:        flavor,
+		Flavor:        vmFlavor,
 		SourceImageID: stemcellCID,
+		AttachedDisks: []ec.AttachedDisk{
+			ec.AttachedDisk{
+				CapacityGB: 50, // Ignored
+				Flavor:     diskFlavor,
+				Kind:       "ephemeral-disk",
+				Name:       "bosh-ephemeral-disk",
+				State:      "STARTED",
+				BootDisk:   true,
+			},
+		},
 	}
 	vmTask, err := ctx.Client.Projects.CreateVM(ctx.Config.ESXCloud.ProjectID, spec)
 	if err != nil {

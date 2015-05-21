@@ -80,10 +80,13 @@ var _ = Describe("VMs", func() {
 			args := []interface{}{
 				"agent-id",
 				"fake-stemcell-id",
-				map[string]interface{}{"flavor": "fake-flavor"}, // cloud_properties
-				[]interface{}{},                                 // networks
-				[]string{},                                      // disk_cids
-				map[string]interface{}{},                        // environment
+				map[string]interface{}{
+					"vm_flavor":   "fake-flavor",
+					"disk_flavor": "fake-flavor",
+				}, // cloud_properties
+				[]interface{}{},          // networks
+				[]string{},               // disk_cids
+				map[string]interface{}{}, // environment
 			}
 			res, err := GetResponse(dispatch(ctx, actions, "create_vm", args))
 
@@ -107,7 +110,17 @@ var _ = Describe("VMs", func() {
 			actions := map[string]cpi.ActionFn{
 				"create_vm": CreateVM,
 			}
-			args := []interface{}{"agent-id", "fake-stemcell-id", map[string]interface{}{"flavor": "fake-flavor"}}
+			args := []interface{}{
+				"agent-id",
+				"fake-stemcell-id",
+				map[string]interface{}{
+					"vm_flavor":   "fake-flavor",
+					"disk_flavor": "fake-flavor",
+				}, // cloud_properties
+				[]interface{}{},          // networks
+				[]string{},               // disk_cids
+				map[string]interface{}{}, // environment
+			}
 			res, err := GetResponse(dispatch(ctx, actions, "create_vm", args))
 
 			Expect(res.Result).Should(BeNil())
@@ -118,7 +131,17 @@ var _ = Describe("VMs", func() {
 			actions := map[string]cpi.ActionFn{
 				"create_vm": CreateVM,
 			}
-			args := []interface{}{"agent-id", "fake-stemcell-id", map[string]interface{}{"flavor": 123}}
+			args := []interface{}{
+				"agent-id",
+				"fake-stemcell-id",
+				map[string]interface{}{
+					"vm_flavor":   123,
+					"disk_flavor": "fake-flavor",
+				}, // cloud_properties
+				[]interface{}{},          // networks
+				[]string{},               // disk_cids
+				map[string]interface{}{}, // environment
+			}
 			res, err := GetResponse(dispatch(ctx, actions, "create_vm", args))
 
 			Expect(res.Result).Should(BeNil())
