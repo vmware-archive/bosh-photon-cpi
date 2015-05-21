@@ -29,15 +29,20 @@ func main() {
 		"restart_vm":      RestartVM,
 	}
 
+	var res []byte
+	defer func() { os.Stdout.Write(res) }()
+
 	reqBytes, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
-		panic("Error reading from stdin")
+		res = createErrorResponse(cpi.NewCpiError(err, "Error reading from stdin"))
+		return
 	}
 
 	req := &cpi.Request{}
 	err = json.Unmarshal(reqBytes, req)
 	if err != nil {
-		panic("Error deserializing JSON request from bosh")
+		res = createErrorResponse(cpi.NewCpiError(err, "Error deserializing JSON request from bosh"))
+		return
 	}
 
 	configPath := flag.String("configPath", "", "Path to esxcloud config file")
@@ -45,11 +50,11 @@ func main() {
 
 	context, err := loadConfig(*configPath)
 	if err != nil {
-		panic(fmt.Sprintf("Unable to load esxcloud config from path '%s' with error '%v'", *configPath, err))
+		res = createErrorResponse(cpi.NewCpiError(err, "Unable to load esxcloud config from path '%s'", *configPath))
+		return
 	}
 
-	res := dispatch(context, actions, strings.ToLower(req.Method), req.Arguments)
-	os.Stdout.Write(res)
+	res = dispatch(context, actions, strings.ToLower(req.Method), req.Arguments)
 }
 
 func loadConfig(filePath string) (ctx *cpi.Context, err error) {
@@ -109,7 +114,7 @@ func createErrorResponse(err error) []byte {
 		res.Error.Type = typedErr.Type()
 		res.Error.CanRetry = typedErr.CanRetry()
 	} else {
-		res.Error.Type = cpi.CloudError
+		res.Error.Type = cpi.CpiError
 		res.Error.CanRetry = false
 	}
 

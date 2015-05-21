@@ -42,7 +42,7 @@ var _ = Describe("Dispatch", func() {
 		res, err := GetResponse(dispatch(ctx, actions, "create_vm", args))
 
 		Expect(res.Error).ShouldNot(BeNil())
-		Expect(res.Error.Type).Should(Equal(cpi.CloudError))
+		Expect(res.Error.Type).Should(Equal(cpi.CpiError))
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 	It("returns a valid bosh JSON error when function errors", func() {
@@ -53,7 +53,7 @@ var _ = Describe("Dispatch", func() {
 		res, err := GetResponse(dispatch(ctx, actions, "create_vm", args))
 
 		Expect(res.Error).ShouldNot(BeNil())
-		Expect(res.Error.Type).Should(Equal(cpi.CloudError))
+		Expect(res.Error.Type).Should(Equal(cpi.CpiError))
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 	It("returns a valid bosh JSON error when function panics", func() {
@@ -64,7 +64,7 @@ var _ = Describe("Dispatch", func() {
 		res, err := GetResponse(dispatch(ctx, actions, "create_vm", args))
 
 		Expect(res.Error).ShouldNot(BeNil())
-		Expect(res.Error.Type).Should(Equal(cpi.CloudError))
+		Expect(res.Error.Type).Should(Equal(cpi.CpiError))
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 	It("returns a valid bosh JSON error when method not implemented", func() {

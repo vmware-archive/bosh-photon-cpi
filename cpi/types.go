@@ -82,6 +82,10 @@ func NewBoshError(errorType BoshErrorType, canRetry bool, format string, args ..
 	return &boshError{errorType, canRetry, fmt.Sprintf(format, args...)}
 }
 
+func NewCpiError(cause interface{}, format string, args ...interface{}) error {
+	return &boshError{CpiError, false, fmt.Sprintf("CPI error: '%s' | Caused by: '%v'", fmt.Sprintf(format, args...), cause)}
+}
+
 type Network struct {
 	Type            string                 `json:"type"`
 	IP              string                 `json:"ip"`
