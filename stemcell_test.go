@@ -45,7 +45,7 @@ var _ = Describe("Stemcell", func() {
 			actions := map[string]cpi.ActionFn{
 				"create_stemcell": CreateStemcell,
 			}
-			args := []interface{}{"./testdata/bosh-stemcell-1000-tty.tgz"}
+			args := []interface{}{"./testdata/image"}
 			res, err := GetResponse(dispatch(ctx, actions, "create_stemcell", args))
 
 			Expect(res.Result).Should(Equal(completedTask.Entity.ID))

@@ -4,9 +4,7 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"errors"
-	"fmt"
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
-	"io"
 	"os"
 )
 
@@ -66,33 +64,6 @@ func newStemcell(filePath string) (sc *stemcell, err error) {
 		return nil, err
 	}
 
-	sc.tr = tar.NewReader(sc.gz)
-
-	found := false
-	for {
-		header, err := sc.tr.Next()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return nil, err
-		}
-
-		if header.Typeflag == tar.TypeReg {
-			if header.Name == "image" {
-				found = true
-				break
-			}
-		}
-	}
-	if !found {
-		err = errors.New(fmt.Sprintf("Could not find entry for OVA image in stemcell at path '%s'", filePath))
-		return nil, err
-	}
-	sc.innerGz, err = gzip.NewReader(sc.tr)
-	if err != nil {
-		return nil, err
-	}
 	return sc, nil
 }
 
@@ -100,16 +71,14 @@ type stemcell struct {
 	file    *os.File
 	gz      *gzip.Reader
 	tr      *tar.Reader
-	innerGz *gzip.Reader
 }
 
 func (s *stemcell) Close() (err error) {
-	err = s.innerGz.Close()
 	err = s.gz.Close()
 	err = s.file.Close()
 	return
 }
 
 func (s *stemcell) Read(p []byte) (n int, err error) {
-	return s.innerGz.Read(p)
+	return s.gz.Read(p)
 }
