@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
 	ec "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
 	"net/http"
@@ -13,7 +12,6 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 	if len(args) < 6 {
 		return nil, errors.New("Expected at least 6 arguments")
 	}
-	fmt.Println(1)
 	agentID, ok := args[0].(string)
 	if !ok {
 		return nil, errors.New("Unexpected argument where agent_id should be")

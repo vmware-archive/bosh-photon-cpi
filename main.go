@@ -27,6 +27,7 @@ func main() {
 		"delete_vm":       DeleteVM,
 		"has_vm":          HasVM,
 		"restart_vm":      RestartVM,
+		"set_vm_metadata": SetVmMetadata,
 	}
 
 	var res []byte
