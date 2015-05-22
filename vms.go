@@ -34,7 +34,7 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 	if !ok {
 		return nil, errors.New("Property 'disk_flavor' on cloud_properties is not a string or is not present")
 	}
-	networks, ok := args[3].([]interface{})
+	networks, ok := args[3].(map[string]interface{})
 	if !ok {
 		return nil, errors.New("Unexpected argument where networks should be")
 	}

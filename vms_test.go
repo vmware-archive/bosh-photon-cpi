@@ -84,7 +84,7 @@ var _ = Describe("VMs", func() {
 					"vm_flavor":   "fake-flavor",
 					"disk_flavor": "fake-flavor",
 				}, // cloud_properties
-				[]interface{}{},          // networks
+				map[string]interface{}{}, // networks
 				[]string{},               // disk_cids
 				map[string]interface{}{}, // environment
 			}
@@ -117,7 +117,7 @@ var _ = Describe("VMs", func() {
 					"vm_flavor":   "fake-flavor",
 					"disk_flavor": "fake-flavor",
 				}, // cloud_properties
-				[]interface{}{},          // networks
+				map[string]interface{}{}, // networks
 				[]string{},               // disk_cids
 				map[string]interface{}{}, // environment
 			}
@@ -138,7 +138,7 @@ var _ = Describe("VMs", func() {
 					"vm_flavor":   123,
 					"disk_flavor": "fake-flavor",
 				}, // cloud_properties
-				[]interface{}{},          // networks
+				map[string]interface{}{}, // networks
 				[]string{},               // disk_cids
 				map[string]interface{}{}, // environment
 			}

@@ -102,7 +102,7 @@ type AgentEnv struct {
 	VM       VMSpec                 `json:"vm"`
 	Mbus     string                 `json:"mbus"`
 	NTP      []string               `json:"ntp"`
-	Networks []interface{}          `json:"networks"`
+	Networks map[string]interface{} `json:"networks"`
 	Env      map[string]interface{} `json:"env"`
 }
 

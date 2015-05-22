@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 )
 
-func createAgentEnv(ctx *cpi.Context, agentID, vmID, vmName string, networks []interface{}, env map[string]interface{}) (res *cpi.AgentEnv) {
+func createAgentEnv(ctx *cpi.Context, agentID, vmID, vmName string, networks, env map[string]interface{}) (res *cpi.AgentEnv) {
 	res = &cpi.AgentEnv{
 		AgentID:  agentID,
 		VM:       cpi.VMSpec{Name: vmName, ID: vmID},

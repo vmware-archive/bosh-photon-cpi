@@ -10,13 +10,9 @@ import (
 )
 
 var _ = Describe("AgentEnv", func() {
-	type testNetwork struct {
-		IP string `json:"ip"`
-	}
-
 	var (
 		ctx      *cpi.Context
-		networks []interface{}
+		networks map[string]interface{}
 		env      map[string]interface{}
 		runner   cmd.Runner
 	)
@@ -36,11 +32,7 @@ var _ = Describe("AgentEnv", func() {
 			Runner: runner,
 		}
 		env = map[string]interface{}{"prop1": "value1", "prop2": 123}
-		nw := []testNetwork{testNetwork{"fake-ip-1"}, testNetwork{"fake-ip-2"}}
-		networks = make([]interface{}, len(nw))
-		for i, v := range nw {
-			networks[i] = interface{}(v)
-		}
+		networks = map[string]interface{}{"default": map[string]interface{}{}}
 	})
 
 	// This test requires genisoimage to truly verify ISO creation. On Linux, a real
