@@ -16,3 +16,4 @@ gobin/*
 _obj
 _test
 
+integration/testout/*
