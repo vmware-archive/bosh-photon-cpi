@@ -83,6 +83,16 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 		return
 	}
 
+	op := &ec.VmOperation{Operation: "START_VM"}
+	onTask, err := ctx.Client.VMs.Operation(vmTask.Entity.ID, op)
+	if err != nil {
+		return
+	}
+	onTask, err = ctx.Client.Tasks.Wait(onTask.ID)
+	if err != nil {
+		return
+	}
+
 	return vmTask.Entity.ID, nil
 }
 
@@ -94,6 +104,17 @@ func DeleteVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 	if !ok {
 		return nil, errors.New("Unexpected argument where vm_cid should be")
 	}
+
+	op := &ec.VmOperation{Operation: "STOP_VM"}
+	offTask, err := ctx.Client.VMs.Operation(vmCID, op)
+	if err != nil {
+		return
+	}
+	offTask, err = ctx.Client.Tasks.Wait(offTask.ID)
+	if err != nil {
+		return
+	}
+
 	task, err := ctx.Client.VMs.Delete(vmCID, true)
 	if err != nil {
 		return

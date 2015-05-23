@@ -57,6 +57,9 @@ var _ = Describe("VMs", func() {
 			isoTask := &ec.Task{Operation: "ATTACH_ISO", State: "QUEUED", ID: "fake-iso-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
 			isoCompletedTask := &ec.Task{Operation: "ATTACH_ISO", State: "COMPLETED", ID: "fake-iso-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
 
+			onTask := &ec.Task{Operation: "START_VM", State: "QUEUED", ID: "fake-on-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
+			onCompletedTask := &ec.Task{Operation: "START_VM", State: "COMPLETED", ID: "fake-on-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
+
 			RegisterResponder(
 				"POST",
 				server.URL+"/v1/projects/"+projID+"/vms",
@@ -70,9 +73,17 @@ var _ = Describe("VMs", func() {
 				server.URL+"/v1/vms/"+createTask.Entity.ID+"/attach_iso",
 				CreateResponder(200, ToJson(isoTask)))
 			RegisterResponder(
+				"POST",
+				server.URL+"/v1/vms/"+createTask.Entity.ID+"/operations",
+				CreateResponder(200, ToJson(onTask)))
+			RegisterResponder(
 				"GET",
 				server.URL+"/v1/tasks/"+isoTask.ID,
 				CreateResponder(200, ToJson(isoCompletedTask)))
+			RegisterResponder(
+				"GET",
+				server.URL+"/v1/tasks/"+onCompletedTask.ID,
+				CreateResponder(200, ToJson(onCompletedTask)))
 
 			actions := map[string]cpi.ActionFn{
 				"create_vm": CreateVM,
@@ -177,14 +188,25 @@ var _ = Describe("VMs", func() {
 			deleteTask := &ec.Task{Operation: "DELETE_VM", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
 			completedTask := &ec.Task{Operation: "DELETE_VM", State: "COMPLETED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
 
+			offTask := &ec.Task{Operation: "STOP_VM", State: "QUEUED", ID: "fake-off-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
+			offCompletedTask := &ec.Task{Operation: "STOP_VM", State: "COMPLETED", ID: "fake-off-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
+
 			RegisterResponder(
 				"DELETE",
 				server.URL+"/v1/vms/"+deleteTask.Entity.ID+"?force=true",
 				CreateResponder(200, ToJson(deleteTask)))
 			RegisterResponder(
+				"POST",
+				server.URL+"/v1/vms/"+deleteTask.Entity.ID+"/operations",
+				CreateResponder(200, ToJson(offTask)))
+			RegisterResponder(
 				"GET",
 				server.URL+"/v1/tasks/"+deleteTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
+			RegisterResponder(
+				"GET",
+				server.URL+"/v1/tasks/"+offCompletedTask.ID,
+				CreateResponder(200, ToJson(offCompletedTask)))
 
 			actions := map[string]cpi.ActionFn{
 				"delete_vm": DeleteVM,
