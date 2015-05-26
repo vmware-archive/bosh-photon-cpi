@@ -7,6 +7,8 @@ import (
 	"github.com/esxcloud/bosh-esxcloud-cpi/cmd"
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
 	"io/ioutil"
+	"os"
+	p "path"
 )
 
 func createAgentEnv(ctx *cpi.Context, agentID, vmID, vmName string, networks, env map[string]interface{}) (res *cpi.AgentEnv) {
@@ -26,7 +28,12 @@ func createEnvISO(env *cpi.AgentEnv, runner cmd.Runner) (path string, err error)
 	if err != nil {
 		return
 	}
-	envFile, err := ioutil.TempFile("", "agent-env-json")
+	envDir, err := ioutil.TempDir("", "agent-iso-dir")
+	if err != nil {
+		return
+	}
+	// Name of the environment JSON file should be "env" to fit ISO 9660 8.3 filename scheme
+	envFile, err := os.Create(p.Join(envDir, "env"))
 	if err != nil {
 		return
 	}
@@ -49,5 +56,8 @@ func createEnvISO(env *cpi.AgentEnv, runner cmd.Runner) (path string, err error)
 		out := string(output[:])
 		return "", errors.New(fmt.Sprintf("Failed to generate ISO for agent settings: %v\n%s", err, out))
 	}
+	// Cleanup temp dir but ignore the error. Failure to delete a temp file is not
+	// worth worrying about.
+	_ = os.RemoveAll(envDir)
 	return envISO.Name(), nil
 }
