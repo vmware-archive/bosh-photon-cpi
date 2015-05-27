@@ -19,6 +19,7 @@ func createAgentEnv(ctx *cpi.Context, agentID, vmID, vmName string, networks, en
 		Env:      env,
 		Mbus:     ctx.Config.Agent.Mbus,
 		NTP:      ctx.Config.Agent.NTP,
+		Disks:    map[string]interface{}{"ephemeral": "1"},
 	}
 	return
 }

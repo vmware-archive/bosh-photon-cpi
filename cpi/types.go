@@ -104,6 +104,7 @@ type AgentEnv struct {
 	NTP      []string               `json:"ntp"`
 	Networks map[string]interface{} `json:"networks"`
 	Env      map[string]interface{} `json:"env"`
+	Disks    map[string]interface{} `json:"disks"`
 }
 
 type VMSpec struct {
