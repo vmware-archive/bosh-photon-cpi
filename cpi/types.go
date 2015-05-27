@@ -18,8 +18,9 @@ type Config struct {
 }
 
 type AgentConfig struct {
-	Mbus string   `json:"mbus"`
-	NTP  []string `json:"ntp"`
+	Mbus      string        `json:"mbus"`
+	NTP       []string      `json:"ntp"`
+	Blobstore BlobstoreSpec `json:"blobstore"`
 }
 
 type ESXCloudConfig struct {
@@ -98,16 +99,22 @@ type Network struct {
 }
 
 type AgentEnv struct {
-	AgentID  string                 `json:"agent_id"`
-	VM       VMSpec                 `json:"vm"`
-	Mbus     string                 `json:"mbus"`
-	NTP      []string               `json:"ntp"`
-	Networks map[string]interface{} `json:"networks"`
-	Env      map[string]interface{} `json:"env"`
-	Disks    map[string]interface{} `json:"disks"`
+	AgentID   string                 `json:"agent_id"`
+	VM        VMSpec                 `json:"vm"`
+	Mbus      string                 `json:"mbus"`
+	NTP       []string               `json:"ntp"`
+	Networks  map[string]interface{} `json:"networks"`
+	Env       map[string]interface{} `json:"env"`
+	Disks     map[string]interface{} `json:"disks"`
+	Blobstore BlobstoreSpec          `json:"blobstore"`
 }
 
 type VMSpec struct {
 	Name string `json:"name"`
 	ID   string `json:"id"`
+}
+
+type BlobstoreSpec struct {
+	Provider string                 `json:"provider"`
+	Options  map[string]interface{} `json:"options"`
 }

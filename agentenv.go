@@ -20,6 +20,10 @@ func createAgentEnv(ctx *cpi.Context, agentID, vmID, vmName string, networks, en
 		Mbus:     ctx.Config.Agent.Mbus,
 		NTP:      ctx.Config.Agent.NTP,
 		Disks:    map[string]interface{}{"ephemeral": "1"},
+		Blobstore: cpi.BlobstoreSpec{
+			Provider: ctx.Config.Agent.Blobstore.Provider,
+			Options:  ctx.Config.Agent.Blobstore.Options,
+		},
 	}
 	return
 }
