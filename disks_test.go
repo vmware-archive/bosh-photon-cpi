@@ -23,7 +23,7 @@ var _ = Describe("Disk", func() {
 		Activate(true)
 		httpClient := &http.Client{Transport: DefaultMockTransport}
 		ctx = &cpi.Context{
-			Client: ec.NewTestClient(server.URL, httpClient),
+			Client: ec.NewTestClient(server.URL, nil, httpClient),
 			Config: &cpi.Config{
 				ESXCloud: &cpi.ESXCloudConfig{
 					Target:    server.URL,

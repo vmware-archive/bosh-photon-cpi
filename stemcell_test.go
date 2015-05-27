@@ -21,7 +21,7 @@ var _ = Describe("Stemcell", func() {
 
 		Activate(true)
 		httpClient := &http.Client{Transport: DefaultMockTransport}
-		ctx = &cpi.Context{Client: ec.NewTestClient(server.URL, httpClient)}
+		ctx = &cpi.Context{Client: ec.NewTestClient(server.URL, nil, httpClient)}
 	})
 
 	AfterEach(func() {

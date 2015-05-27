@@ -68,7 +68,7 @@ func loadConfig(filePath string) (ctx *cpi.Context, err error) {
 	if err != nil {
 		return
 	}
-	ctx = &cpi.Context{Client: esxcloud.NewClient(config.ESXCloud.Target), Config: config, Runner: cmd.NewRunner()}
+	ctx = &cpi.Context{Client: esxcloud.NewClient(config.ESXCloud.Target, nil), Config: config, Runner: cmd.NewRunner()}
 	return
 }
 
@@ -111,10 +111,21 @@ func createErrorResponse(err error) []byte {
 			Message: err.Error(),
 		}}
 
-	if typedErr, ok := err.(cpi.BoshError); ok {
-		res.Error.Type = typedErr.Type()
-		res.Error.CanRetry = typedErr.CanRetry()
-	} else {
+	switch t := err.(type) {
+	// If caller throws BoshError specifically, respect type and canRetry from caller
+	case cpi.BoshError:
+		res.Error.Type = t.Type()
+		res.Error.CanRetry = t.CanRetry()
+	// An API error or a task in error state cannot be retried
+	case esxcloud.ApiError, esxcloud.TaskError:
+		res.Error.Type = cpi.CloudError
+		res.Error.CanRetry = false
+	// Task timeout errors and unknown HTTP errors can likely be retried
+	case esxcloud.HttpError, esxcloud.TaskTimeoutError:
+		res.Error.Type = cpi.CloudError
+		res.Error.CanRetry = true
+	// Assume unknown errors are CPI errors that cannnot be retried
+	default:
 		res.Error.Type = cpi.CpiError
 		res.Error.CanRetry = false
 	}
