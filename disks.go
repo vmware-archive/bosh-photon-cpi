@@ -12,11 +12,11 @@ func CreateDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 	if len(args) < 3 {
 		return nil, errors.New("Expected at least 3 arguments")
 	}
-	size, ok := args[0].(int)
+	disk_size, ok := args[0].(float64)
 	if !ok {
 		return nil, errors.New("Unexpected argument where size should be")
 	}
-	size = toGB(size)
+	size := toGB(disk_size)
 	if size < 1 {
 		return nil, errors.New("Must provide a size in MiB that rounds up to at least 1 GiB for esxcloud")
 	}
@@ -24,9 +24,9 @@ func CreateDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 	if !ok {
 		return nil, errors.New("Unexpected argument where cloud_properties should be")
 	}
-	flavor, ok := cloudProps["flavor"].(string)
+	flavor, ok := cloudProps["disk_flavor"].(string)
 	if !ok {
-		return nil, errors.New("Property 'flavor' on cloud_properties is not a string")
+		return nil, errors.New("Property 'disk_flavor' on cloud_properties is not a string")
 	}
 	vmCID, ok := args[2].(string)
 	if !ok {
@@ -160,6 +160,6 @@ func DetachDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 	return nil, nil
 }
 
-func toGB(mb int) int {
-	return int(math.Ceil(float64(mb) / 1000.0))
+func toGB(mb float64) int {
+	return int(math.Ceil(mb / 1000.0))
 }

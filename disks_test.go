@@ -56,7 +56,7 @@ var _ = Describe("Disk", func() {
 			actions := map[string]cpi.ActionFn{
 				"create_disk": CreateDisk,
 			}
-			args := []interface{}{2500, map[string]interface{}{"flavor": "disk-flavor"}, "fake-vm-id"}
+			args := []interface{}{2500.0, map[string]interface{}{"disk_flavor": "disk-flavor"}, "fake-vm-id"}
 			res, err := GetResponse(dispatch(ctx, actions, "create_disk", args))
 
 			Expect(res.Result).Should(Equal(completedTask.Entity.ID))
