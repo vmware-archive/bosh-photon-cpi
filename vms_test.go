@@ -191,6 +191,12 @@ var _ = Describe("VMs", func() {
 			offTask := &ec.Task{Operation: "STOP_VM", State: "QUEUED", ID: "fake-off-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
 			offCompletedTask := &ec.Task{Operation: "STOP_VM", State: "COMPLETED", ID: "fake-off-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
 
+			disks := &ec.DiskList{[]ec.PersistentDisk{
+				ec.PersistentDisk{ID: "fake-disk-1", VMs: []string{completedTask.Entity.ID}},
+			}}
+			detachQueuedTask := &ec.Task{Operation: "DETACH_DISK", State: "QUEUED", ID: "fake-disk-task-1", Entity: ec.Entity{ID: "fake-disk-1"}}
+			detachCompletedTask := &ec.Task{Operation: "DETACH_DISK", State: "COMPLETED", ID: "fake-disk-task-1", Entity: ec.Entity{ID: "fake-disk-1"}}
+
 			RegisterResponder(
 				"DELETE",
 				server.URL+"/v1/vms/"+deleteTask.Entity.ID+"?force=true",
@@ -200,6 +206,14 @@ var _ = Describe("VMs", func() {
 				server.URL+"/v1/vms/"+deleteTask.Entity.ID+"/operations",
 				CreateResponder(200, ToJson(offTask)))
 			RegisterResponder(
+				"POST",
+				server.URL+"/v1/vms/"+deleteTask.Entity.ID+"/detach_disk",
+				CreateResponder(200, ToJson(detachQueuedTask)))
+			RegisterResponder(
+				"GET",
+				server.URL+"/v1/tasks/"+detachCompletedTask.ID,
+				CreateResponder(200, ToJson(detachCompletedTask)))
+			RegisterResponder(
 				"GET",
 				server.URL+"/v1/tasks/"+deleteTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
@@ -207,6 +221,10 @@ var _ = Describe("VMs", func() {
 				"GET",
 				server.URL+"/v1/tasks/"+offCompletedTask.ID,
 				CreateResponder(200, ToJson(offCompletedTask)))
+			RegisterResponder(
+				"GET",
+				server.URL+"/v1/projects/"+projID+"/disks",
+				CreateResponder(200, ToJson(disks)))
 
 			actions := map[string]cpi.ActionFn{
 				"delete_vm": DeleteVM,

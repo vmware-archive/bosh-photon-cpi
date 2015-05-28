@@ -113,6 +113,27 @@ func DeleteVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 		return nil, errors.New("Unexpected argument where vm_cid should be")
 	}
 
+	// Detach any attached disks first
+	disks, err := ctx.Client.Projects.FindDisks(ctx.Config.ESXCloud.ProjectID, nil)
+	if err != nil {
+		return
+	}
+	for _, disk := range disks.Items {
+		for _, vmID := range disk.VMs {
+			if vmID == vmCID {
+				detachOp := &ec.VmDiskOperation{DiskID: disk.ID}
+				detachTask, err := ctx.Client.VMs.DetachDisk(vmCID, detachOp)
+				if err != nil {
+					return nil, err
+				}
+				detachTask, err = ctx.Client.Tasks.Wait(detachTask.ID)
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+
 	op := &ec.VmOperation{Operation: "STOP_VM"}
 	offTask, err := ctx.Client.VMs.Operation(vmCID, op)
 	if err != nil {
