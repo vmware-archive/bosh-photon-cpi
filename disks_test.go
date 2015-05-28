@@ -30,6 +30,7 @@ var _ = Describe("Disk", func() {
 					ProjectID: "fake-project-id",
 				},
 			},
+			Logger: newLogger(CurrentGinkgoTestDescription()),
 		}
 
 		projID = ctx.Config.ESXCloud.ProjectID

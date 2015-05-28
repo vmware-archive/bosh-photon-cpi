@@ -2,11 +2,11 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"github.com/esxcloud/bosh-esxcloud-cpi/cmd"
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
+	"github.com/esxcloud/bosh-esxcloud-cpi/logger"
 	"github.com/esxcloud/esxcloud-go-sdk/esxcloud"
 	"io/ioutil"
 	"os"
@@ -35,14 +35,14 @@ func main() {
 
 	reqBytes, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
-		res = createErrorResponse(cpi.NewCpiError(err, "Error reading from stdin"))
+		res = createErrorResponse(cpi.NewCpiError(err, "Error reading from stdin"), "")
 		return
 	}
 
 	req := &cpi.Request{}
 	err = json.Unmarshal(reqBytes, req)
 	if err != nil {
-		res = createErrorResponse(cpi.NewCpiError(err, "Error deserializing JSON request from bosh"))
+		res = createErrorResponse(cpi.NewCpiError(err, "Error deserializing JSON request from bosh"), "")
 		return
 	}
 
@@ -51,8 +51,18 @@ func main() {
 
 	context, err := loadConfig(*configPath)
 	if err != nil {
-		res = createErrorResponse(cpi.NewCpiError(err, "Unable to load esxcloud config from path '%s'", *configPath))
+		res = createErrorResponse(cpi.NewCpiError(err, "Unable to load esxcloud config from path '%s'", *configPath), "")
 		return
+	}
+
+	// Create a new logger with the CPI method name in the log filename
+	context.Logger, err = logger.New(req.Method)
+	defer context.Logger.Close()
+
+	// If there's an error with the logger, print it to stderr, but don't do anything
+	// to prevent the CPI from running.
+	if err != nil {
+		os.Stderr.WriteString("Unable to create log file for esxcloud CPI")
 	}
 
 	res = dispatch(context, actions, strings.ToLower(req.Method), req.Arguments)
@@ -80,24 +90,33 @@ func dispatch(context *cpi.Context, actions map[string]cpi.ActionFn, method stri
 				// Don't even try to recover severe runtime errors
 				panic(r)
 			}
-			result = createErrorResponse(errors.New(fmt.Sprintf("%v", r)))
+			e := fmt.Errorf("%v", r)
+			context.Logger.Error(e)
+			result = createErrorResponse(e, context.Logger.Filename())
 		}
 	}()
 	if fn, ok := actions[method]; ok {
+		context.Logger.Infof("Begin action %s", method)
+
 		res, err := fn(context, args)
 		if err != nil {
-			return createErrorResponse(err)
+			context.Logger.Errorf("Error encountered during action %s: %v", method, err)
+			return createErrorResponse(err, context.Logger.Filename())
 		}
-		return createResponse(res)
+
+		context.Logger.Infof("Action response: %#v", res)
+		context.Logger.Infof("End action %s", method)
+		return createResponse(res, context.Logger.Filename())
 	} else {
-		return createErrorResponse(
-			cpi.NewBoshError(cpi.NotImplementedError, false, "Method %s not implemented in esxcloud CPI.", method))
+		e := cpi.NewBoshError(cpi.NotImplementedError, false, "Method %s not implemented in esxcloud CPI.", method)
+		context.Logger.Error(e)
+		return createErrorResponse(e, context.Logger.Filename())
 	}
 	return
 }
 
-func createResponse(result interface{}) []byte {
-	res := &cpi.Response{Result: result}
+func createResponse(result interface{}, logFilename string) []byte {
+	res := &cpi.Response{Result: result, Log: logFilename}
 	resBytes, err := json.Marshal(res)
 	if err != nil {
 		panic(err)
@@ -105,11 +124,13 @@ func createResponse(result interface{}) []byte {
 	return resBytes
 }
 
-func createErrorResponse(err error) []byte {
+func createErrorResponse(err error, logFilename string) []byte {
 	res := &cpi.Response{
 		Error: &cpi.ResponseError{
 			Message: err.Error(),
-		}}
+		},
+		Log: logFilename,
+	}
 
 	switch t := err.(type) {
 	// If caller throws BoshError specifically, respect type and canRetry from caller

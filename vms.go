@@ -42,6 +42,10 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 		return nil, errors.New("Unexpected argument where env should be")
 	}
 
+	ctx.Logger.Infof(
+		"CreateVM with agent_id: '%v', stemcell_cid: '%v', cloud_properties: '%v', networks: '%v', env: '%v'",
+		agentID, stemcellCID, cloudProps, networks, env)
+
 	spec := &ec.VmCreateSpec{
 		Name:          "bosh-vm",
 		Flavor:        vmFlavor,
@@ -65,10 +69,12 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 			},
 		},
 	}
+	ctx.Logger.Infof("Creating VM with spec: %#v", spec)
 	vmTask, err := ctx.Client.Projects.CreateVM(ctx.Config.ESXCloud.ProjectID, spec)
 	if err != nil {
 		return
 	}
+	ctx.Logger.Infof("Waiting on task: %#v", vmTask)
 	vmTask, err = ctx.Client.Tasks.Wait(vmTask.ID)
 	if err != nil {
 		return
@@ -76,26 +82,31 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 
 	// Create and attach agent env ISO file
 	envJson := createAgentEnv(ctx, agentID, vmTask.Entity.ID, spec.Name, networks, env)
+	ctx.Logger.Infof("Creating agent env: %#v", envJson)
 	isoPath, err := createEnvISO(envJson, ctx.Runner)
 	if err != nil {
 		return
 	}
 	defer os.Remove(isoPath)
 
+	ctx.Logger.Infof("Attaching ISO at path: %s", isoPath)
 	attachTask, err := ctx.Client.VMs.AttachISO(vmTask.Entity.ID, isoPath)
 	if err != nil {
 		return
 	}
+	ctx.Logger.Infof("Waiting on task: %#v", attachTask)
 	attachTask, err = ctx.Client.Tasks.Wait(attachTask.ID)
 	if err != nil {
 		return
 	}
 
 	op := &ec.VmOperation{Operation: "START_VM"}
+	ctx.Logger.Info("Starting VM")
 	onTask, err := ctx.Client.VMs.Operation(vmTask.Entity.ID, op)
 	if err != nil {
 		return
 	}
+	ctx.Logger.Infof("Waiting on task: %#v", onTask)
 	onTask, err = ctx.Client.Tasks.Wait(onTask.ID)
 	if err != nil {
 		return
@@ -113,6 +124,9 @@ func DeleteVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 		return nil, errors.New("Unexpected argument where vm_cid should be")
 	}
 
+	ctx.Logger.Infof("Deleting VM: %s", vmCID)
+
+	ctx.Logger.Info("Detaching disks")
 	// Detach any attached disks first
 	disks, err := ctx.Client.Projects.FindDisks(ctx.Config.ESXCloud.ProjectID, nil)
 	if err != nil {
@@ -121,11 +135,13 @@ func DeleteVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 	for _, disk := range disks.Items {
 		for _, vmID := range disk.VMs {
 			if vmID == vmCID {
+				ctx.Logger.Infof("Detaching disk: %s", disk.ID)
 				detachOp := &ec.VmDiskOperation{DiskID: disk.ID}
 				detachTask, err := ctx.Client.VMs.DetachDisk(vmCID, detachOp)
 				if err != nil {
 					return nil, err
 				}
+				ctx.Logger.Infof("Waiting on task: %#v", detachTask)
 				detachTask, err = ctx.Client.Tasks.Wait(detachTask.ID)
 				if err != nil {
 					return nil, err
@@ -134,20 +150,24 @@ func DeleteVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 		}
 	}
 
+	ctx.Logger.Info("Stopping VM")
 	op := &ec.VmOperation{Operation: "STOP_VM"}
 	offTask, err := ctx.Client.VMs.Operation(vmCID, op)
 	if err != nil {
 		return
 	}
+	ctx.Logger.Infof("Waiting on task: %#v", offTask)
 	offTask, err = ctx.Client.Tasks.Wait(offTask.ID)
 	if err != nil {
 		return
 	}
 
+	ctx.Logger.Info("Deleting VM")
 	task, err := ctx.Client.VMs.Delete(vmCID, true)
 	if err != nil {
 		return
 	}
+	ctx.Logger.Infof("Waiting on task: %#v", task)
 	_, err = ctx.Client.Tasks.Wait(task.ID)
 	if err != nil {
 		return
@@ -163,6 +183,8 @@ func HasVM(ctx *cpi.Context, args []interface{}) (result interface{}, err error)
 	if !ok {
 		return nil, errors.New("Unexpected argument where vm_cid should be")
 	}
+
+	ctx.Logger.Infof("Determining if VM exists: %s", vmCID)
 	_, err = ctx.Client.VMs.Get(vmCID)
 	if err != nil {
 		apiErr, ok := err.(ec.ApiError)
@@ -182,11 +204,14 @@ func RestartVM(ctx *cpi.Context, args []interface{}) (result interface{}, err er
 	if !ok {
 		return nil, errors.New("Unexpected argument where vm_cid should be")
 	}
+
+	ctx.Logger.Infof("Restarting VM: %s", vmCID)
 	op := &ec.VmOperation{Operation: "RESTART_VM"}
 	task, err := ctx.Client.VMs.Operation(vmCID, op)
 	if err != nil {
 		return
 	}
+	ctx.Logger.Infof("Waiting on task: %#v", task)
 	_, err = ctx.Client.Tasks.Wait(task.ID)
 	if err != nil {
 		return

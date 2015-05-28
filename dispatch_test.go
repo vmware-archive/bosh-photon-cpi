@@ -17,6 +17,12 @@ var _ = Describe("Dispatch", func() {
 		configPath string
 	)
 
+	BeforeEach(func() {
+		ctx = &cpi.Context{
+			Logger: newLogger(CurrentGinkgoTestDescription()),
+		}
+	})
+
 	AfterEach(func() {
 		if configPath != "" {
 			os.Remove(configPath)

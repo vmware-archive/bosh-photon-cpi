@@ -3,6 +3,7 @@ package cpi
 import (
 	"fmt"
 	"github.com/esxcloud/bosh-esxcloud-cpi/cmd"
+	"github.com/esxcloud/bosh-esxcloud-cpi/logger"
 	"github.com/esxcloud/esxcloud-go-sdk/esxcloud"
 )
 
@@ -10,6 +11,7 @@ type Context struct {
 	Client *esxcloud.Client
 	Config *Config
 	Runner cmd.Runner
+	Logger logger.Logger
 }
 
 type Config struct {

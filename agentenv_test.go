@@ -30,6 +30,7 @@ var _ = Describe("AgentEnv", func() {
 				Agent: &cpi.AgentConfig{Mbus: "fake-mbus", NTP: []string{"fake-ntp"}},
 			},
 			Runner: runner,
+			Logger: newLogger(CurrentGinkgoTestDescription()),
 		}
 		env = map[string]interface{}{"prop1": "value1", "prop2": 123}
 		networks = map[string]interface{}{"default": map[string]interface{}{}}

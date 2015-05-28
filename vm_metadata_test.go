@@ -8,11 +8,21 @@ import (
 )
 
 var _ = Describe("VM metadata", func() {
+	var (
+		ctx *cpi.Context
+	)
+
+	BeforeEach(func() {
+		ctx = &cpi.Context{
+			Logger: newLogger(CurrentGinkgoTestDescription()),
+		}
+	})
+
 	It("set_vm_metadata is a nop", func() {
 		actions := map[string]cpi.ActionFn{
 			"set_vm_metadata": SetVmMetadata,
 		}
-		res, err := GetResponse(dispatch(nil, actions, "set_vm_metadata", nil))
+		res, err := GetResponse(dispatch(ctx, actions, "set_vm_metadata", nil))
 		Expect(res.Result).To(BeNil())
 		Expect(err).To(BeNil())
 	})
