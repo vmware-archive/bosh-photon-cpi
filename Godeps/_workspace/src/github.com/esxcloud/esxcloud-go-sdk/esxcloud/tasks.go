@@ -2,7 +2,6 @@ package esxcloud
 
 import (
 	"github.com/esxcloud/esxcloud-go-sdk/esxcloud/internal/rest"
-	"math"
 	"time"
 )
 
@@ -25,17 +24,15 @@ func (api *TasksAPI) Get(id string) (task *Task, err error) {
 func (api *TasksAPI) WaitTimeout(id string, timeout time.Duration) (task *Task, err error) {
 	start := time.Now()
 	numErrors := 0
-	maxErrors := 3
+	maxErrors := api.client.options.taskRetryCount
 
 	for time.Since(start) < timeout {
 		task, err = api.Get(id)
 		if err != nil {
 			switch err.(type) {
-
 			// If an ApiError comes back, something is wrong, return the error to the caller
 			case ApiError:
 				return
-
 			// For other errors, retry before giving up
 			default:
 				numErrors++
@@ -43,19 +40,25 @@ func (api *TasksAPI) WaitTimeout(id string, timeout time.Duration) (task *Task, 
 					return
 				}
 			}
+		} else {
+			// Reset the error count any time a successful call is made
+			numErrors = 0
+			if task.State == "COMPLETED" {
+				return
+			}
+			if task.State == "ERROR" {
+				err = TaskError{id}
+				return
+			}
 		}
-		// Reset the error count any time a successful call is made
-		numErrors = 0
-		if task.State == "COMPLETED" || task.State == "ERROR" {
-			return
-		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(api.client.options.taskPollDelay)
 	}
+	err = TaskTimeoutError{id}
 	return
 }
 
 // Waits for a task to complete by polling the tasks API until a task returns with
 // the state COMPLETED or ERROR.
 func (api *TasksAPI) Wait(id string) (task *Task, err error) {
-	return api.WaitTimeout(id, math.MaxInt64)
+	return api.WaitTimeout(id, api.client.options.TaskPollTimeout)
 }

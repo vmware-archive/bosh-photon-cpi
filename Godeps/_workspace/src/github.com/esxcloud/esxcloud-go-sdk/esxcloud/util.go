@@ -20,7 +20,7 @@ func getError(res *http.Response) (*http.Response, error) {
 	}
 	var apiError ApiError
 	// ReadAll is usually a bad practice, but here we need to read the response all
-	// at once because we'll attempt to deserialize it twice. It's preferable to use
+	// at once because we may attempt to use the data twice. It's preferable to use
 	// methods that take io.Reader, e.g. json.NewDecoder
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
@@ -37,8 +37,8 @@ func getError(res *http.Response) (*http.Response, error) {
 
 // Reads a task object out of the HTTP response. Takes an error argument
 // so that GetTask can easily wrap GetError. This function will do nothing
-// if e is nil.
-// e.g. res, err := GetTask(GetError(someApi.Get()))
+// if e is not nil.
+// e.g. res, err := getTask(getError(someApi.Get()))
 func getTask(res *http.Response, e error) (*Task, error) {
 	if e != nil {
 		return nil, e
@@ -47,6 +47,11 @@ func getTask(res *http.Response, e error) (*Task, error) {
 	err := json.NewDecoder(res.Body).Decode(&task)
 	if err != nil {
 		return nil, err
+	}
+	if task.State == "ERROR" {
+		// Critical: return task as well, so that it can be examined
+		// for error details.
+		return &task, TaskError{task.ID}
 	}
 	return &task, nil
 }

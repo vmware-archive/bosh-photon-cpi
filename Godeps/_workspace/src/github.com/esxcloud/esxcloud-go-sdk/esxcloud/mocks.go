@@ -60,7 +60,7 @@ func testSetup() (server *testServer, client *Client) {
 	}}
 
 	httpClient := &http.Client{Transport: transport}
-	client = NewTestClient(uri, httpClient)
+	client = NewTestClient(uri, nil, httpClient)
 	return
 }
 

@@ -37,6 +37,28 @@ func (e HttpError) Error() string {
 	return fmt.Sprintf("esxcloud: HTTP %d: %v", e.StatusCode, e.Message)
 }
 
+// Represents an ESXCloud task that has entered into an error state.
+// ESXCloud task errors can be caught and type-checked against with
+// the usual Go idiom.
+type TaskError struct {
+	ID string
+}
+
+func (e TaskError) Error() string {
+	return fmt.Sprintf("esxcloud: Task '%s' is in error state. " +
+		"Examine task for full details.")
+}
+
+// An error representing a timeout while waiting for a task to complete.
+type TaskTimeoutError struct {
+	ID string
+}
+
+func (e TaskTimeoutError) Error() string {
+	return fmt.Sprintf("esxcloud: Timed out waiting for task '%s'. " +
+		"Task may not be in error state, examine task for full details.")
+}
+
 type Step struct {
 	ID                 string                 `json:"id"`
 	Operation          string                 `json:"operation,omitempty"`
