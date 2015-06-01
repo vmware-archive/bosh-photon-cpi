@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
 	"os"
+	"path/filepath"
 )
 
 func CreateStemcell(ctx *cpi.Context, args []interface{}) (result interface{}, err error) {
@@ -21,7 +22,7 @@ func CreateStemcell(ctx *cpi.Context, args []interface{}) (result interface{}, e
 		return
 	}
 	defer stemcell.Close()
-	task, err := ctx.Client.Images.Create(stemcell)
+	task, err := ctx.Client.Images.Create(stemcell, filepath.Base(imagePath), nil)
 	if err != nil {
 		return
 	}
@@ -68,9 +69,9 @@ func newStemcell(filePath string) (sc *stemcell, err error) {
 }
 
 type stemcell struct {
-	file    *os.File
-	gz      *gzip.Reader
-	tr      *tar.Reader
+	file *os.File
+	gz   *gzip.Reader
+	tr   *tar.Reader
 }
 
 func (s *stemcell) Close() (err error) {
