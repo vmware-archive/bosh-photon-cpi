@@ -97,6 +97,7 @@ func dispatch(context *cpi.Context, actions map[string]cpi.ActionFn, method stri
 	}()
 	if fn, ok := actions[method]; ok {
 		context.Logger.Infof("Begin action %s", method)
+		context.Logger.Infof("Raw action arguments: %#v", args)
 
 		res, err := fn(context, args)
 		if err != nil {

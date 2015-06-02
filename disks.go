@@ -33,6 +33,10 @@ func CreateDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 		return nil, errors.New("Unexpected argument where vm_cid should be")
 	}
 
+	ctx.Logger.Infof(
+		"CreateDisk with disk_size: '%v' (rounded to '%v' GiB), cloud_properties: '%v', flavor: '%s', vm_cid: '%s'",
+		disk_size, size, cloudProps, flavor, vmCID)
+
 	diskSpec := &ec.DiskCreateSpec{
 		Flavor:     flavor,
 		Kind:       "persistent-disk",
@@ -40,10 +44,12 @@ func CreateDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 		Name:       "disk-for-vm-" + vmCID,
 	}
 
+	ctx.Logger.Infof("Creating disk with spec: %#v", diskSpec)
 	task, err := ctx.Client.Projects.CreateDisk(ctx.Config.ESXCloud.ProjectID, diskSpec)
 	if err != nil {
 		return
 	}
+	ctx.Logger.Infof("Waiting on task: %#v", task)
 	task, err = ctx.Client.Tasks.Wait(task.ID)
 	if err != nil {
 		return
@@ -59,10 +65,16 @@ func DeleteDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 	if !ok {
 		return nil, errors.New("Unexpected argument where disk_cid should be")
 	}
+
+	ctx.Logger.Infof("DeleteDisk with disk_cid: '%s'", diskCID)
+
+	ctx.Logger.Info("Deleting disk")
 	task, err := ctx.Client.Disks.Delete(diskCID, true)
 	if err != nil {
 		return
 	}
+
+	ctx.Logger.Infof("Waiting on task: %#v", task)
 	task, err = ctx.Client.Tasks.Wait(task.ID)
 	if err != nil {
 		return
@@ -78,6 +90,9 @@ func HasDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err erro
 	if !ok {
 		return nil, errors.New("Unexpected argument where disk_cid should be")
 	}
+
+	ctx.Logger.Infof("HasDisk with disk_cid: '%s'", diskCID)
+
 	_, err = ctx.Client.Disks.Get(diskCID)
 	if err != nil {
 		apiErr, ok := err.(ec.ApiError)
@@ -97,10 +112,14 @@ func GetDisks(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 	if !ok {
 		return nil, errors.New("Unexpected argument where vim_cid should be")
 	}
+
+	ctx.Logger.Infof("GetDisks with vm_cid: '%s'", vmCID)
+
 	disks, err := ctx.Client.Projects.FindDisks(ctx.Config.ESXCloud.ProjectID, nil)
 	if err != nil {
 		return
 	}
+
 	res := []string{}
 	for _, disk := range disks.Items {
 		for _, vm := range disk.VMs {
@@ -124,16 +143,23 @@ func AttachDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 	if !ok {
 		return nil, errors.New("Unexpected argument where disk_cid should be")
 	}
+
+	ctx.Logger.Infof("AttachDisk with vm_cid: '%s', disk_cid: '%s'", vmCID, diskCID)
+
+	ctx.Logger.Info("Attaching disk")
 	op := &ec.VmDiskOperation{DiskID: diskCID}
 	task, err := ctx.Client.VMs.AttachDisk(vmCID, op)
 	if err != nil {
 		return
 	}
+
+	ctx.Logger.Infof("Waiting on task: %#v", task)
 	task, err = ctx.Client.Tasks.Wait(task.ID)
 	if err != nil {
 		return
 	}
 
+	ctx.Logger.Info("Getting metadata for VM")
 	// Get agent env config from VM metadata and update disk ID
 	env, err := getAgentEnvMetadata(vmCID)
 	if err != nil {
@@ -150,6 +176,7 @@ func AttachDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 	// TODO: use real ID from agent
 	diskMap[diskCID] = "2"
 
+	ctx.Logger.Info("Updating metadata for VM")
 	err = putAgentEnvMetadata(vmCID, env)
 	if err != nil {
 		return
@@ -170,17 +197,24 @@ func DetachDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 	if !ok {
 		return nil, errors.New("Unexpected argument where disk_cid should be")
 	}
+
+	ctx.Logger.Infof("DetachDisk with vm_cid: '%s', disk_cid: '%s'", vmCID, diskCID)
+
+	ctx.Logger.Info("Detaching disk")
 	op := &ec.VmDiskOperation{DiskID: diskCID}
 	task, err := ctx.Client.VMs.DetachDisk(vmCID, op)
 	if err != nil {
 		return
 	}
+
+	ctx.Logger.Infof("Waiting on task: %#v", task)
 	task, err = ctx.Client.Tasks.Wait(task.ID)
 	if err != nil {
 		return
 	}
 
 	// Get agent env config from VM metadata and remove disk ID
+	ctx.Logger.Info("Getting metadata for VM")
 	env, err := getAgentEnvMetadata(vmCID)
 	if err != nil {
 		return
@@ -189,6 +223,8 @@ func DetachDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 	if diskMap, ok := env.Disks[persistent].(map[string]interface{}); ok {
 		delete(diskMap, diskCID)
 	}
+
+	ctx.Logger.Info("Updating metadata for VM")
 	err = putAgentEnvMetadata(vmCID, env)
 	if err != nil {
 		return

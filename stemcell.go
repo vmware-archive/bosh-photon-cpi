@@ -17,15 +17,23 @@ func CreateStemcell(ctx *cpi.Context, args []interface{}) (result interface{}, e
 	if !ok {
 		return nil, errors.New("Unexpected argument where image_path should be")
 	}
+
+	ctx.Logger.Infof("CreateStemcell with imagePath: '%s', imagePath")
+
+	ctx.Logger.Info("Reading stemcell from disk")
 	stemcell, err := newStemcell(imagePath)
 	if err != nil {
 		return
 	}
 	defer stemcell.Close()
+
+	ctx.Logger.Info("Beginning stemcell upload")
 	task, err := ctx.Client.Images.Create(stemcell, filepath.Base(imagePath), nil)
 	if err != nil {
 		return
 	}
+
+	ctx.Logger.Infof("Waiting on task: %#v", task)
 	task, err = ctx.Client.Tasks.Wait(task.ID)
 	if err != nil {
 		return
@@ -41,10 +49,16 @@ func DeleteStemcell(ctx *cpi.Context, args []interface{}) (result interface{}, e
 	if !ok {
 		return nil, errors.New("Unexpected argument where stemcell_cid should be")
 	}
+
+	ctx.Logger.Infof("DeleteStemcell with stemcell_cid: '%s'", stemcellCID)
+
+	ctx.Logger.Info("Beginning stemcell deletion")
 	task, err := ctx.Client.Images.Delete(stemcellCID)
 	if err != nil {
 		return
 	}
+
+	ctx.Logger.Infof("Waiting on task: %#v", task)
 	task, err = ctx.Client.Tasks.Wait(task.ID)
 	if err != nil {
 		return

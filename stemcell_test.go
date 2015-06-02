@@ -54,6 +54,8 @@ var _ = Describe("Stemcell", func() {
 			Expect(res.Result).Should(Equal(completedTask.Entity.ID))
 			Expect(res.Error).Should(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
+			Expect(res.Log).ShouldNot(BeEmpty())
+			Expect(res.Log).Should(containLogData())
 		})
 
 		It("returns an error when APIfe returns a 500", func() {
@@ -78,6 +80,8 @@ var _ = Describe("Stemcell", func() {
 			Expect(res.Result).Should(BeNil())
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
+			Expect(res.Log).ShouldNot(BeEmpty())
+			Expect(res.Log).Should(containLogData())
 		})
 
 		It("returns an error when stemcell file does not exist", func() {
@@ -90,6 +94,8 @@ var _ = Describe("Stemcell", func() {
 			Expect(res.Result).Should(BeNil())
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
+			Expect(res.Log).ShouldNot(BeEmpty())
+			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given no arguments", func() {
 			actions := map[string]cpi.ActionFn{
@@ -101,6 +107,8 @@ var _ = Describe("Stemcell", func() {
 			Expect(res.Result).Should(BeNil())
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
+			Expect(res.Log).ShouldNot(BeEmpty())
+			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given an invalid argument", func() {
 			actions := map[string]cpi.ActionFn{
@@ -112,6 +120,8 @@ var _ = Describe("Stemcell", func() {
 			Expect(res.Result).Should(BeNil())
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
+			Expect(res.Log).ShouldNot(BeEmpty())
+			Expect(res.Log).Should(containLogData())
 		})
 	})
 
@@ -138,6 +148,8 @@ var _ = Describe("Stemcell", func() {
 			Expect(res.Result).Should(BeNil())
 			Expect(res.Error).Should(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
+			Expect(res.Log).ShouldNot(BeEmpty())
+			Expect(res.Log).Should(containLogData())
 		})
 		It("returns an error for missing stemcell delete", func() {
 			deleteTask := &ec.Task{Operation: "DELETE_IMAGE", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-image-id"}}
@@ -161,6 +173,8 @@ var _ = Describe("Stemcell", func() {
 			Expect(res.Result).Should(BeNil())
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
+			Expect(res.Log).ShouldNot(BeEmpty())
+			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given no arguments", func() {
 			actions := map[string]cpi.ActionFn{
@@ -172,6 +186,8 @@ var _ = Describe("Stemcell", func() {
 			Expect(res.Result).Should(BeNil())
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
+			Expect(res.Log).ShouldNot(BeEmpty())
+			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given an invalid argument", func() {
 			actions := map[string]cpi.ActionFn{
@@ -183,6 +199,8 @@ var _ = Describe("Stemcell", func() {
 			Expect(res.Result).Should(BeNil())
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
+			Expect(res.Log).ShouldNot(BeEmpty())
+			Expect(res.Log).Should(containLogData())
 		})
 	})
 })

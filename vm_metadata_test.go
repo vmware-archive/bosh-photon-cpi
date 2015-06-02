@@ -25,5 +25,7 @@ var _ = Describe("VM metadata", func() {
 		res, err := GetResponse(dispatch(ctx, actions, "set_vm_metadata", nil))
 		Expect(res.Result).To(BeNil())
 		Expect(err).To(BeNil())
+		Expect(res.Log).ShouldNot(BeEmpty())
+		Expect(res.Log).Should(containLogData())
 	})
 })
