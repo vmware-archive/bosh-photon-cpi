@@ -52,4 +52,16 @@ var _ = Describe("AgentEnv", func() {
 		Expect(err).Should(BeNil())
 		Expect(outStr).Should(ContainSubstring("ISO 9660 CD-ROM"))
 	})
+
+	Describe("Metadata", func() {
+		It("successfully puts and gets agent env data", func() {
+			vmID := "fake-vm-id"
+			env := createAgentEnv(ctx, "agent-id", vmID, "vm-name", map[string]interface{}{}, map[string]interface{}{})
+			err := putAgentEnvMetadata(vmID, env)
+			Expect(err).ToNot(HaveOccurred())
+			env2, err := getAgentEnvMetadata(vmID)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(env2).Should(Equal(env))
+		})
+	})
 })

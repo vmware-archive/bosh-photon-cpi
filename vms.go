@@ -89,6 +89,12 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 	}
 	defer os.Remove(isoPath)
 
+	// Store env JSON as metadata so it can be picked up by attach/detach disk
+	err = putAgentEnvMetadata(vmTask.Entity.ID, envJson)
+	if err != nil {
+		return
+	}
+
 	ctx.Logger.Infof("Attaching ISO at path: %s", isoPath)
 	attachTask, err := ctx.Client.VMs.AttachISO(vmTask.Entity.ID, isoPath)
 	if err != nil {

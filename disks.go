@@ -133,6 +133,28 @@ func AttachDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 	if err != nil {
 		return
 	}
+
+	// Get agent env config from VM metadata and update disk ID
+	env, err := getAgentEnvMetadata(vmCID)
+	if err != nil {
+		return
+	}
+	persistent := "persistent"
+	if _, ok := env.Disks[persistent]; !ok {
+		env.Disks[persistent] = map[string]interface{}{}
+	}
+	diskMap, ok := env.Disks[persistent].(map[string]interface{})
+	if !ok {
+		return nil, errors.New("Unexpected type found in VM metadata")
+	}
+	// TODO: use real ID from agent
+	diskMap[diskCID] = "2"
+
+	err = putAgentEnvMetadata(vmCID, env)
+	if err != nil {
+		return
+	}
+
 	return nil, nil
 }
 
@@ -157,6 +179,21 @@ func DetachDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 	if err != nil {
 		return
 	}
+
+	// Get agent env config from VM metadata and remove disk ID
+	env, err := getAgentEnvMetadata(vmCID)
+	if err != nil {
+		return
+	}
+	persistent := "persistent"
+	if diskMap, ok := env.Disks[persistent].(map[string]interface{}); ok {
+		delete(diskMap, diskCID)
+	}
+	err = putAgentEnvMetadata(vmCID, env)
+	if err != nil {
+		return
+	}
+
 	return nil, nil
 }
 

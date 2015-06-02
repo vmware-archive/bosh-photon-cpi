@@ -28,6 +28,29 @@ func createAgentEnv(ctx *cpi.Context, agentID, vmID, vmName string, networks, en
 	return
 }
 
+func getAgentEnvMetadata(vmID string) (res *cpi.AgentEnv, err error) {
+	// TODO: replace temp file with VM metadata API
+	file := p.Join(os.TempDir(), vmID)
+	buf, err := ioutil.ReadFile(file)
+	if err != nil {
+		return
+	}
+	res = &cpi.AgentEnv{}
+	err = json.Unmarshal(buf, res)
+	return
+}
+
+func putAgentEnvMetadata(vmID string, env *cpi.AgentEnv) (err error) {
+	buf, err := json.Marshal(env)
+	if err != nil {
+		return
+	}
+	// TODO: replace temp file with VM metadata API
+	file := p.Join(os.TempDir(), vmID)
+	err = ioutil.WriteFile(file, buf, 0777)
+	return
+}
+
 func createEnvISO(env *cpi.AgentEnv, runner cmd.Runner) (path string, err error) {
 	json, err := json.Marshal(env)
 	if err != nil {
