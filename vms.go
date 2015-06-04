@@ -114,7 +114,7 @@ func DeleteVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 
 	ctx.Logger.Info("Detaching disks")
 	// Detach any attached disks first
-	disks, err := ctx.Client.Projects.FindDisks(ctx.Config.ESXCloud.ProjectID, nil)
+	disks, err := ctx.Client.Projects.GetDisks(ctx.Config.ESXCloud.ProjectID, nil)
 	if err != nil {
 		return
 	}

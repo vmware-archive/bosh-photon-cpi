@@ -115,7 +115,7 @@ func GetDisks(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 
 	ctx.Logger.Infof("GetDisks with vm_cid: '%s'", vmCID)
 
-	disks, err := ctx.Client.Projects.FindDisks(ctx.Config.ESXCloud.ProjectID, nil)
+	disks, err := ctx.Client.Projects.GetDisks(ctx.Config.ESXCloud.ProjectID, nil)
 	if err != nil {
 		return
 	}
