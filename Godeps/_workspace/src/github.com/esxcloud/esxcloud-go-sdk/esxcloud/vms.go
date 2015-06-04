@@ -118,7 +118,7 @@ func (api *VmAPI) DetachDisk(id string, op *VmDiskOperation) (task *Task, err er
 }
 
 func (api *VmAPI) AttachISO(id, isoPath string) (task *Task, err error) {
-	res, err := rest.MultipartUploadFile(api.client.httpClient, api.client.Endpoint+"/v1/vms/"+id+"/attach_iso", isoPath)
+	res, err := rest.MultipartUploadFile(api.client.httpClient, api.client.Endpoint+"/v1/vms/"+id+"/attach_iso", isoPath, nil)
 	if err != nil {
 		return
 	}

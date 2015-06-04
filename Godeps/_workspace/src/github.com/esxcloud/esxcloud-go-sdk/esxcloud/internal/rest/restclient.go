@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/textproto"
 	"os"
+	"path/filepath"
 )
 
 type Request struct {
@@ -49,19 +50,24 @@ func Do(client *http.Client, req *Request) (res *http.Response, err error) {
 	return
 }
 
-func MultipartUploadFile(client *http.Client, url, filePath string) (res *http.Response, err error) {
+func MultipartUploadFile(client *http.Client, url, filePath string, params map[string]string) (res *http.Response, err error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return
 	}
-	return MultipartUpload(client, url, file)
+	return MultipartUpload(client, url, file, filepath.Base(filePath), params)
 }
 
-func MultipartUpload(client *http.Client, url string, reader io.Reader) (res *http.Response, err error) {
+func MultipartUpload(client *http.Client, url string, reader io.Reader, filename string, params map[string]string) (res *http.Response, err error) {
 	buf := &bytes.Buffer{}
 	writer := multipart.NewWriter(buf)
+	if params != nil {
+		for key, val := range params {
+			writer.WriteField(key, val)
+		}
+	}
 	header := textproto.MIMEHeader{}
-	header.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s";`, "file", "imagefile"))
+	header.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s";`, "file", filename))
 	header.Set("Content-Type", writer.FormDataContentType())
 	part, err := writer.CreatePart(header)
 	if err != nil {

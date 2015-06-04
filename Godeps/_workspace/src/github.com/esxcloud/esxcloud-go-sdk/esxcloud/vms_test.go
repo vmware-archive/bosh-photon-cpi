@@ -44,7 +44,7 @@ func TestCreateGetDeleteVM(t *testing.T) {
 
 	// Upload image
 	imagePath := "../testdata/tty_tiny.ova"
-	imageTask, _ := client.Images.CreateFromFile(imagePath)
+	imageTask, _ := client.Images.CreateFromFile(imagePath, nil)
 	mockTask = createMockTask("CREATE_IMAGE", "COMPLETED")
 	server.SetResponseJson(200, mockTask)
 	imageTask, _ = client.Tasks.Wait(imageTask.ID)
@@ -224,7 +224,7 @@ func TestAttachDetachDisk(t *testing.T) {
 
 	// Upload image
 	imagePath := "../testdata/tty_tiny.ova"
-	imageTask, _ := client.Images.CreateFromFile(imagePath)
+	imageTask, _ := client.Images.CreateFromFile(imagePath, nil)
 	mockTask = createMockTask("CREATE_IMAGE", "COMPLETED")
 	server.SetResponseJson(200, mockTask)
 	imageTask, _ = client.Tasks.Wait(imageTask.ID)
@@ -425,7 +425,7 @@ func TestAttachDetachISO(t *testing.T) {
 
 	// Upload image
 	imagePath := "../testdata/tty_tiny.ova"
-	imageTask, _ := client.Images.CreateFromFile(imagePath)
+	imageTask, _ := client.Images.CreateFromFile(imagePath, nil)
 	mockTask = createMockTask("CREATE_IMAGE", "COMPLETED")
 	server.SetResponseJson(200, mockTask)
 	imageTask, _ = client.Tasks.Wait(imageTask.ID)
@@ -590,7 +590,7 @@ func TestVmPowerOnAndOff(t *testing.T) {
 
 	// Upload image
 	imagePath := "../testdata/tty_tiny.ova"
-	imageTask, _ := client.Images.CreateFromFile(imagePath)
+	imageTask, _ := client.Images.CreateFromFile(imagePath, nil)
 	server.SetResponseJson(200, createMockTask("CREATE_IMAGE", "COMPLETED"))
 	imageTask, _ = client.Tasks.Wait(imageTask.ID)
 

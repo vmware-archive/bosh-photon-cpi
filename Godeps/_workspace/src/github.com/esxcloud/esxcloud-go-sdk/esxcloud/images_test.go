@@ -12,7 +12,7 @@ func TestCreateAndDeleteImage(t *testing.T) {
 
 	// Start create image
 	imagePath := "../testdata/tty_tiny.ova"
-	task, err := client.Images.CreateFromFile(imagePath)
+	task, err := client.Images.CreateFromFile(imagePath, nil)
 	if err != nil {
 		t.Error("Not expecting error from image create")
 	}

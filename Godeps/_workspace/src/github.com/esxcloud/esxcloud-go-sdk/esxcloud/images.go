@@ -20,12 +20,19 @@ type Image struct {
 	SelfLink string   `json:"selfLink"`
 }
 
+type ImageCreateOptions struct {
+	ReplicationType string
+}
+
 type Images struct {
 	Items []Image `json:"items"`
 }
 
-func (api *ImagesAPI) CreateFromFile(imagePath string) (task *Task, err error) {
-	res, err := rest.MultipartUploadFile(api.client.httpClient, api.client.Endpoint+"/v1/images", imagePath)
+// Uploads a new image, reading from the specified image path.
+// If opts is nil, default options are used.
+func (api *ImagesAPI) CreateFromFile(imagePath string, opts *ImageCreateOptions) (task *Task, err error) {
+	params := imageCreateOptionsToMap(opts)
+	res, err := rest.MultipartUploadFile(api.client.httpClient, api.client.Endpoint+"/v1/images", imagePath, params)
 	if err != nil {
 		return
 	}
@@ -34,8 +41,13 @@ func (api *ImagesAPI) CreateFromFile(imagePath string) (task *Task, err error) {
 	return result, err
 }
 
-func (api *ImagesAPI) Create(reader io.Reader) (task *Task, err error) {
-	res, err := rest.MultipartUpload(api.client.httpClient, api.client.Endpoint+"/v1/images", reader)
+// Uploads a new image, reading from the specified io.Reader.
+// Name is a descriptive name of the image, it is used in the filename field of the Content-Disposition header,
+// and does not need to be unique.
+// If opts is nil, default options are used.
+func (api *ImagesAPI) Create(reader io.Reader, name string, opts *ImageCreateOptions) (task *Task, err error) {
+	params := imageCreateOptionsToMap(opts)
+	res, err := rest.MultipartUpload(api.client.httpClient, api.client.Endpoint+"/v1/images", reader, name, params)
 	if err != nil {
 		return
 	}
@@ -82,4 +94,17 @@ func (api *ImagesAPI) Delete(id string) (task *Task, err error) {
 	defer res.Body.Close()
 	result, err := getTask(getError(res))
 	return result, err
+}
+
+func defaultImageCreateOptions() *ImageCreateOptions {
+	return &ImageCreateOptions{ReplicationType: "EAGER"}
+}
+
+func imageCreateOptionsToMap(opts *ImageCreateOptions) map[string]string {
+	if opts == nil {
+		return imageCreateOptionsToMap(defaultImageCreateOptions())
+	}
+	return map[string]string{
+		"ImageReplication": opts.ReplicationType,
+	}
 }
