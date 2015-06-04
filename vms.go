@@ -5,7 +5,6 @@ import (
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
 	ec "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
 	"net/http"
-	"os"
 )
 
 func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err error) {
@@ -82,27 +81,7 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 
 	// Create and attach agent env ISO file
 	envJson := createAgentEnv(ctx, agentID, vmTask.Entity.ID, spec.Name, networks, env)
-	ctx.Logger.Infof("Creating agent env: %#v", envJson)
-	isoPath, err := createEnvISO(envJson, ctx.Runner)
-	if err != nil {
-		return
-	}
-	defer os.Remove(isoPath)
-
-	// Store env JSON as metadata so it can be picked up by attach/detach disk
-	ctx.Logger.Info("Updating metadata for VM")
-	err = putAgentEnvMetadata(vmTask.Entity.ID, envJson)
-	if err != nil {
-		return
-	}
-
-	ctx.Logger.Infof("Attaching ISO at path: %s", isoPath)
-	attachTask, err := ctx.Client.VMs.AttachISO(vmTask.Entity.ID, isoPath)
-	if err != nil {
-		return
-	}
-	ctx.Logger.Infof("Waiting on task: %#v", attachTask)
-	attachTask, err = ctx.Client.Tasks.Wait(attachTask.ID)
+	err = updateAgentEnv(ctx, vmTask.Entity.ID, envJson)
 	if err != nil {
 		return
 	}

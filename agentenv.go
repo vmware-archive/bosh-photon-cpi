@@ -89,3 +89,29 @@ func createEnvISO(env *cpi.AgentEnv, runner cmd.Runner) (path string, err error)
 	_ = os.RemoveAll(envDir)
 	return envISO.Name(), nil
 }
+
+// Creates agent env ISO, updates VM metadata, and attaches the ISO to VM
+func updateAgentEnv(ctx *cpi.Context, vmID string, env *cpi.AgentEnv) (err error) {
+	ctx.Logger.Infof("Creating agent env: %#v", env)
+	isoPath, err := createEnvISO(env, ctx.Runner)
+	if err != nil {
+		return
+	}
+	defer os.Remove(isoPath)
+
+	// Store env JSON as metadata so it can be picked up by attach/detach disk
+	ctx.Logger.Info("Updating metadata for VM")
+	err = putAgentEnvMetadata(vmID, env)
+	if err != nil {
+		return
+	}
+
+	ctx.Logger.Infof("Attaching ISO at path: %s", isoPath)
+	attachTask, err := ctx.Client.VMs.AttachISO(vmID, isoPath)
+	if err != nil {
+		return
+	}
+	ctx.Logger.Infof("Waiting on task: %#v", attachTask)
+	attachTask, err = ctx.Client.Tasks.Wait(attachTask.ID)
+	return
+}

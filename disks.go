@@ -176,8 +176,7 @@ func AttachDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 	// TODO: use real ID from agent
 	diskMap[diskCID] = "2"
 
-	ctx.Logger.Info("Updating metadata for VM")
-	err = putAgentEnvMetadata(vmCID, env)
+	err = updateAgentEnv(ctx, vmCID, env)
 	if err != nil {
 		return
 	}
@@ -224,8 +223,7 @@ func DetachDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 		delete(diskMap, diskCID)
 	}
 
-	ctx.Logger.Info("Updating metadata for VM")
-	err = putAgentEnvMetadata(vmCID, env)
+	err = updateAgentEnv(ctx, vmCID, env)
 	if err != nil {
 		return
 	}

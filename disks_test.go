@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/esxcloud/bosh-esxcloud-cpi/cmd"
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
 	. "github.com/esxcloud/bosh-esxcloud-cpi/mocks"
 	ec "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
@@ -8,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	"net/http"
 	"net/http/httptest"
+	"runtime"
 )
 
 var _ = Describe("Disk", func() {
@@ -19,6 +21,12 @@ var _ = Describe("Disk", func() {
 
 	BeforeEach(func() {
 		server = NewMockServer()
+		var runner cmd.Runner
+		if runtime.GOOS == "linux" {
+			runner = cmd.NewRunner()
+		} else {
+			runner = &fakeRunner{}
+		}
 
 		Activate(true)
 		httpClient := &http.Client{Transport: DefaultMockTransport}
@@ -30,6 +38,7 @@ var _ = Describe("Disk", func() {
 					ProjectID: "fake-project-id",
 				},
 			},
+			Runner: runner,
 			Logger: newLogger(CurrentGinkgoTestDescription()),
 		}
 
@@ -393,15 +402,26 @@ var _ = Describe("Disk", func() {
 			attachTask := &ec.Task{Operation: "ATTACH_DISK", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-disk-id"}}
 			completedTask := &ec.Task{Operation: "ATTACH_DISK", State: "COMPLETED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-disk-id"}}
 
+			isoTask := &ec.Task{Operation: "ATTACH_ISO", State: "QUEUED", ID: "fake-iso-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
+			isoCompletedTask := &ec.Task{Operation: "ATTACH_ISO", State: "COMPLETED", ID: "fake-iso-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
+
 			RegisterResponder(
 				"POST",
 				server.URL+"/v1/vms/fake-vm-id/attach_disk",
 				CreateResponder(200, ToJson(attachTask)))
+			RegisterResponder(
+				"POST",
+				server.URL+"/v1/vms/fake-vm-id/attach_iso",
+				CreateResponder(200, ToJson(isoTask)))
 
 			RegisterResponder(
 				"GET",
 				server.URL+"/v1/tasks/"+attachTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
+			RegisterResponder(
+				"GET",
+				server.URL+"/v1/tasks/"+isoTask.ID,
+				CreateResponder(200, ToJson(isoCompletedTask)))
 
 			actions := map[string]cpi.ActionFn{
 				"attach_disk": AttachDisk,
@@ -447,15 +467,26 @@ var _ = Describe("Disk", func() {
 			attachTask := &ec.Task{Operation: "DETACH_DISK", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-disk-id"}}
 			completedTask := &ec.Task{Operation: "DETACH_DISK", State: "COMPLETED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-disk-id"}}
 
+			isoTask := &ec.Task{Operation: "ATTACH_ISO", State: "QUEUED", ID: "fake-iso-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
+			isoCompletedTask := &ec.Task{Operation: "ATTACH_ISO", State: "COMPLETED", ID: "fake-iso-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
+
 			RegisterResponder(
 				"POST",
 				server.URL+"/v1/vms/fake-vm-id/detach_disk",
 				CreateResponder(200, ToJson(attachTask)))
+			RegisterResponder(
+				"POST",
+				server.URL+"/v1/vms/fake-vm-id/attach_iso",
+				CreateResponder(200, ToJson(isoTask)))
 
 			RegisterResponder(
 				"GET",
 				server.URL+"/v1/tasks/"+attachTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
+			RegisterResponder(
+				"GET",
+				server.URL+"/v1/tasks/"+isoTask.ID,
+				CreateResponder(200, ToJson(isoCompletedTask)))
 
 			actions := map[string]cpi.ActionFn{
 				"detach_disk": DetachDisk,
