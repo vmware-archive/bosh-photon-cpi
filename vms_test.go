@@ -61,6 +61,8 @@ var _ = Describe("VMs", func() {
 			onTask := &ec.Task{Operation: "START_VM", State: "QUEUED", ID: "fake-on-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
 			onCompletedTask := &ec.Task{Operation: "START_VM", State: "COMPLETED", ID: "fake-on-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
 
+			detachTask := &ec.Task{Operation: "DETACH_ISO", State: "ERROR", ID: "fake-detach-id"}
+
 			RegisterResponder(
 				"POST",
 				server.URL+"/v1/projects/"+projID+"/vms",
@@ -75,6 +77,10 @@ var _ = Describe("VMs", func() {
 				CreateResponder(200, ToJson(isoTask)))
 			RegisterResponder(
 				"POST",
+				server.URL+"/v1/vms/"+createTask.Entity.ID+"/detach_iso",
+				CreateResponder(200, ToJson(detachTask)))
+			RegisterResponder(
+				"POST",
 				server.URL+"/v1/vms/"+createTask.Entity.ID+"/operations",
 				CreateResponder(200, ToJson(onTask)))
 			RegisterResponder(
@@ -85,6 +91,10 @@ var _ = Describe("VMs", func() {
 				"GET",
 				server.URL+"/v1/tasks/"+onCompletedTask.ID,
 				CreateResponder(200, ToJson(onCompletedTask)))
+			RegisterResponder(
+				"GET",
+				server.URL+"/v1/tasks/"+detachTask.ID,
+				CreateResponder(200, ToJson(detachTask)))
 
 			actions := map[string]cpi.ActionFn{
 				"create_vm": CreateVM,

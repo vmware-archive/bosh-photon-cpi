@@ -106,6 +106,16 @@ func updateAgentEnv(ctx *cpi.Context, vmID string, env *cpi.AgentEnv) (err error
 		return
 	}
 
+	// Detach ISO first, but ignore any task error due to ISO already being detached
+	detachTask, err := ctx.Client.VMs.DetachISO(vmID)
+	if err != nil && !isTaskError(err) {
+		return err
+	}
+	detachTask, err = ctx.Client.Tasks.Wait(detachTask.ID)
+	if err != nil && !isTaskError(err) {
+		return err
+	}
+
 	ctx.Logger.Infof("Attaching ISO at path: %s", isoPath)
 	attachTask, err := ctx.Client.VMs.AttachISO(vmID, isoPath)
 	if err != nil {

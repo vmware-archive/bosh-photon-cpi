@@ -402,6 +402,9 @@ var _ = Describe("Disk", func() {
 			attachTask := &ec.Task{Operation: "ATTACH_DISK", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-disk-id"}}
 			completedTask := &ec.Task{Operation: "ATTACH_DISK", State: "COMPLETED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-disk-id"}}
 
+			detachIsoTask := &ec.Task{Operation: "DETACH_ISO", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-disk-id"}}
+			detachCompletedTask := &ec.Task{Operation: "DETACH_ISO", State: "COMPLETED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-disk-id"}}
+
 			isoTask := &ec.Task{Operation: "ATTACH_ISO", State: "QUEUED", ID: "fake-iso-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
 			isoCompletedTask := &ec.Task{Operation: "ATTACH_ISO", State: "COMPLETED", ID: "fake-iso-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
 
@@ -413,6 +416,10 @@ var _ = Describe("Disk", func() {
 				"POST",
 				server.URL+"/v1/vms/fake-vm-id/attach_iso",
 				CreateResponder(200, ToJson(isoTask)))
+			RegisterResponder(
+				"POST",
+				server.URL+"/v1/vms/fake-vm-id/detach_iso",
+				CreateResponder(200, ToJson(detachIsoTask)))
 
 			RegisterResponder(
 				"GET",
@@ -422,6 +429,10 @@ var _ = Describe("Disk", func() {
 				"GET",
 				server.URL+"/v1/tasks/"+isoTask.ID,
 				CreateResponder(200, ToJson(isoCompletedTask)))
+			RegisterResponder(
+				"GET",
+				server.URL+"/v1/tasks/"+detachIsoTask.ID,
+				CreateResponder(200, ToJson(detachCompletedTask)))
 
 			actions := map[string]cpi.ActionFn{
 				"attach_disk": AttachDisk,
@@ -467,6 +478,9 @@ var _ = Describe("Disk", func() {
 			attachTask := &ec.Task{Operation: "DETACH_DISK", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-disk-id"}}
 			completedTask := &ec.Task{Operation: "DETACH_DISK", State: "COMPLETED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-disk-id"}}
 
+			detachIsoTask := &ec.Task{Operation: "DETACH_ISO", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-disk-id"}}
+			detachCompletedTask := &ec.Task{Operation: "DETACH_ISO", State: "COMPLETED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-disk-id"}}
+
 			isoTask := &ec.Task{Operation: "ATTACH_ISO", State: "QUEUED", ID: "fake-iso-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
 			isoCompletedTask := &ec.Task{Operation: "ATTACH_ISO", State: "COMPLETED", ID: "fake-iso-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
 
@@ -478,6 +492,10 @@ var _ = Describe("Disk", func() {
 				"POST",
 				server.URL+"/v1/vms/fake-vm-id/attach_iso",
 				CreateResponder(200, ToJson(isoTask)))
+			RegisterResponder(
+				"POST",
+				server.URL+"/v1/vms/fake-vm-id/detach_iso",
+				CreateResponder(200, ToJson(detachIsoTask)))
 
 			RegisterResponder(
 				"GET",
@@ -487,6 +505,10 @@ var _ = Describe("Disk", func() {
 				"GET",
 				server.URL+"/v1/tasks/"+isoTask.ID,
 				CreateResponder(200, ToJson(isoCompletedTask)))
+			RegisterResponder(
+				"GET",
+				server.URL+"/v1/tasks/"+detachIsoTask.ID,
+				CreateResponder(200, ToJson(detachCompletedTask)))
 
 			actions := map[string]cpi.ActionFn{
 				"detach_disk": DetachDisk,
