@@ -47,9 +47,9 @@ type Request struct {
 }
 
 type Response struct {
-	Result interface{}    `json:"result,omitempty"`
-	Error  *ResponseError `json:"error,omitempty"`
-	Log    string         `json:"log,omitempty"`
+	Result interface{}    `json:"result"`
+	Error  *ResponseError `json:"error"`
+	Log    string         `json:"log"`
 }
 
 type ResponseError struct {
