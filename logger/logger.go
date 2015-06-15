@@ -1,10 +1,8 @@
 package logger
 
 import (
+	"bytes"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path"
 	"time"
 )
 
@@ -20,51 +18,35 @@ type Logger interface {
 	Error(v ...interface{})
 	Errorf(format string, v ...interface{})
 
-	// Closes underlying file
-	Close()
-	// Returns full filename of log
-	Filename() string
+	LogData() string
 }
 
-type tempFileLogger struct {
-	logFile *os.File
+type bufferLogger struct {
+	buffer *bytes.Buffer
 }
 
-func New(logName string) (Logger, error) {
-	dir := path.Join(os.TempDir(), "bosh-esxcloud-cpi-logs")
-	err := os.MkdirAll(dir, 0777)
-	if err != nil {
-		return nil, err
-	}
-	file, err := ioutil.TempFile(dir, logName)
-	if err != nil {
-		return nil, err
-	}
-	return tempFileLogger{file}, nil
+func New() Logger {
+	return bufferLogger{&bytes.Buffer{}}
 }
 
-func (l tempFileLogger) Info(v ...interface{}) {
-	l.logFile.WriteString(timestamp() + infoStr + fmt.Sprint(v...) + "\n")
+func (l bufferLogger) Info(v ...interface{}) {
+	l.buffer.WriteString(timestamp() + infoStr + fmt.Sprint(v...) + "\n")
 }
 
-func (l tempFileLogger) Infof(format string, v ...interface{}) {
-	l.logFile.WriteString(timestamp() + infoStr + fmt.Sprintf(format, v...) + "\n")
+func (l bufferLogger) Infof(format string, v ...interface{}) {
+	l.buffer.WriteString(timestamp() + infoStr + fmt.Sprintf(format, v...) + "\n")
 }
 
-func (l tempFileLogger) Error(v ...interface{}) {
-	l.logFile.WriteString(timestamp() + errStr + fmt.Sprint(v...) + "\n")
+func (l bufferLogger) Error(v ...interface{}) {
+	l.buffer.WriteString(timestamp() + errStr + fmt.Sprint(v...) + "\n")
 }
 
-func (l tempFileLogger) Errorf(format string, v ...interface{}) {
-	l.logFile.WriteString(timestamp() + errStr + fmt.Sprintf(format, v...) + "\n")
+func (l bufferLogger) Errorf(format string, v ...interface{}) {
+	l.buffer.WriteString(timestamp() + errStr + fmt.Sprintf(format, v...) + "\n")
 }
 
-func (l tempFileLogger) Close() {
-	l.logFile.Close()
-}
-
-func (l tempFileLogger) Filename() string {
-	return l.logFile.Name()
+func (l bufferLogger) LogData() string {
+	return l.buffer.String()
 }
 
 func timestamp() string {

@@ -55,10 +55,6 @@ func main() {
 		return
 	}
 
-	// Create a new logger with the CPI method name in the log filename
-	context.Logger, err = logger.New(req.Method)
-	defer context.Logger.Close()
-
 	// If there's an error with the logger, print it to stderr, but don't do anything
 	// to prevent the CPI from running.
 	if err != nil {
@@ -78,7 +74,12 @@ func loadConfig(filePath string) (ctx *cpi.Context, err error) {
 	if err != nil {
 		return
 	}
-	ctx = &cpi.Context{Client: esxcloud.NewClient(config.ESXCloud.Target, nil), Config: config, Runner: cmd.NewRunner()}
+	ctx = &cpi.Context{
+		Client: esxcloud.NewClient(config.ESXCloud.Target, nil),
+		Config: config,
+		Runner: cmd.NewRunner(),
+		Logger: logger.New(),
+	}
 	return
 }
 
@@ -92,7 +93,7 @@ func dispatch(context *cpi.Context, actions map[string]cpi.ActionFn, method stri
 			}
 			e := fmt.Errorf("%v", r)
 			context.Logger.Error(e)
-			result = createErrorResponse(e, context.Logger.Filename())
+			result = createErrorResponse(e, context.Logger.LogData())
 		}
 	}()
 	if fn, ok := actions[method]; ok {
@@ -102,22 +103,22 @@ func dispatch(context *cpi.Context, actions map[string]cpi.ActionFn, method stri
 		res, err := fn(context, args)
 		if err != nil {
 			context.Logger.Errorf("Error encountered during action %s: %v", method, err)
-			return createErrorResponse(err, context.Logger.Filename())
+			return createErrorResponse(err, context.Logger.LogData())
 		}
 
 		context.Logger.Infof("Action response: %#v", res)
 		context.Logger.Infof("End action %s", method)
-		return createResponse(res, context.Logger.Filename())
+		return createResponse(res, context.Logger.LogData())
 	} else {
 		e := cpi.NewBoshError(cpi.NotImplementedError, false, "Method %s not implemented in esxcloud CPI.", method)
 		context.Logger.Error(e)
-		return createErrorResponse(e, context.Logger.Filename())
+		return createErrorResponse(e, context.Logger.LogData())
 	}
 	return
 }
 
-func createResponse(result interface{}, logFilename string) []byte {
-	res := &cpi.Response{Result: result, Log: logFilename}
+func createResponse(result interface{}, logData string) []byte {
+	res := &cpi.Response{Result: result, Log: logData}
 	resBytes, err := json.Marshal(res)
 	if err != nil {
 		panic(err)
@@ -125,12 +126,12 @@ func createResponse(result interface{}, logFilename string) []byte {
 	return resBytes
 }
 
-func createErrorResponse(err error, logFilename string) []byte {
+func createErrorResponse(err error, logData string) []byte {
 	res := &cpi.Response{
 		Error: &cpi.ResponseError{
 			Message: err.Error(),
 		},
-		Log: logFilename,
+		Log: logData,
 	}
 
 	switch t := err.(type) {

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
+	"github.com/esxcloud/bosh-esxcloud-cpi/logger"
 	. "github.com/esxcloud/bosh-esxcloud-cpi/mocks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -19,7 +20,7 @@ var _ = Describe("Dispatch", func() {
 
 	BeforeEach(func() {
 		ctx = &cpi.Context{
-			Logger: newLogger(CurrentGinkgoTestDescription()),
+			Logger: logger.New(),
 		}
 	})
 

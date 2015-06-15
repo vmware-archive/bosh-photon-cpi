@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/esxcloud/bosh-esxcloud-cpi/cmd"
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
+	"github.com/esxcloud/bosh-esxcloud-cpi/logger"
 	. "github.com/esxcloud/bosh-esxcloud-cpi/mocks"
 	ec "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
 	. "github.com/onsi/ginkgo"
@@ -40,7 +41,7 @@ var _ = Describe("VMs", func() {
 				Agent: &cpi.AgentConfig{Mbus: "fake-mbus", NTP: []string{"fake-ntp"}},
 			},
 			Runner: runner,
-			Logger: newLogger(CurrentGinkgoTestDescription()),
+			Logger: logger.New(),
 		}
 
 		projID = ctx.Config.ESXCloud.ProjectID
@@ -116,7 +117,6 @@ var _ = Describe("VMs", func() {
 			Expect(res.Error).Should(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when server returns error", func() {
 			createTask := &ec.Task{Operation: "CREATE_VM", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
@@ -151,7 +151,6 @@ var _ = Describe("VMs", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when cloud_properties has bad property type", func() {
 			actions := map[string]cpi.ActionFn{
@@ -174,7 +173,6 @@ var _ = Describe("VMs", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when cloud_properties has no properties", func() {
 			actions := map[string]cpi.ActionFn{
@@ -187,7 +185,6 @@ var _ = Describe("VMs", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when cloud_properties is missing", func() {
 			actions := map[string]cpi.ActionFn{
@@ -200,7 +197,6 @@ var _ = Describe("VMs", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 	})
 
@@ -257,7 +253,6 @@ var _ = Describe("VMs", func() {
 			Expect(res.Error).Should(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when VM not found", func() {
 			deleteTask := &ec.Task{Operation: "DELETE_VM", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
@@ -282,7 +277,6 @@ var _ = Describe("VMs", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given no arguments", func() {
 			actions := map[string]cpi.ActionFn{
@@ -295,7 +289,6 @@ var _ = Describe("VMs", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given an invalid argument", func() {
 			actions := map[string]cpi.ActionFn{
@@ -308,7 +301,6 @@ var _ = Describe("VMs", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 	})
 	Describe("HasVM", func() {
@@ -329,7 +321,6 @@ var _ = Describe("VMs", func() {
 			Expect(res.Error).Should(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return false when VM not found", func() {
 			vm := &ec.VM{ID: "fake-vm-id"}
@@ -348,7 +339,6 @@ var _ = Describe("VMs", func() {
 			Expect(res.Error).Should(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when server returns error", func() {
 			vm := &ec.VM{ID: "fake-vm-id"}
@@ -367,7 +357,6 @@ var _ = Describe("VMs", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given no arguments", func() {
 			actions := map[string]cpi.ActionFn{
@@ -380,7 +369,6 @@ var _ = Describe("VMs", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given an invalid argument", func() {
 			actions := map[string]cpi.ActionFn{
@@ -393,7 +381,6 @@ var _ = Describe("VMs", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 	})
 
@@ -421,7 +408,6 @@ var _ = Describe("VMs", func() {
 			Expect(res.Error).Should(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when VM not found", func() {
 			restartTask := &ec.Task{Operation: "restart_vm", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
@@ -446,7 +432,6 @@ var _ = Describe("VMs", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given no arguments", func() {
 			actions := map[string]cpi.ActionFn{
@@ -459,7 +444,6 @@ var _ = Describe("VMs", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given an invalid argument", func() {
 			actions := map[string]cpi.ActionFn{
@@ -472,7 +456,6 @@ var _ = Describe("VMs", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 	})
 })

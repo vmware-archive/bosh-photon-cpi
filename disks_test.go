@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/esxcloud/bosh-esxcloud-cpi/cmd"
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
+	"github.com/esxcloud/bosh-esxcloud-cpi/logger"
 	. "github.com/esxcloud/bosh-esxcloud-cpi/mocks"
 	ec "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
 	. "github.com/onsi/ginkgo"
@@ -39,7 +40,7 @@ var _ = Describe("Disk", func() {
 				},
 			},
 			Runner: runner,
-			Logger: newLogger(CurrentGinkgoTestDescription()),
+			Logger: logger.New(),
 		}
 
 		projID = ctx.Config.ESXCloud.ProjectID
@@ -73,7 +74,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).Should(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("returns an error when size is too small", func() {
 			createTask := &ec.Task{Operation: "CREATE_DISK", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-disk-id"}}
@@ -98,7 +98,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("returns an error when apife returns a 500", func() {
 			createTask := &ec.Task{Operation: "CREATE_DISK", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-disk-id"}}
@@ -123,7 +122,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given no arguments", func() {
 			actions := map[string]cpi.ActionFn{
@@ -136,7 +134,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given an invalid argument", func() {
 			actions := map[string]cpi.ActionFn{
@@ -149,7 +146,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 	})
 
@@ -177,7 +173,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).Should(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("returns an error when apife returns 404", func() {
 			deleteTask := &ec.Task{Operation: "DELETE_DISK", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-disk-id"}}
@@ -202,7 +197,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given no arguments", func() {
 			actions := map[string]cpi.ActionFn{
@@ -215,7 +209,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given an invalid argument", func() {
 			actions := map[string]cpi.ActionFn{
@@ -228,7 +221,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 	})
 
@@ -251,7 +243,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).Should(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("returns false for HasDisk when disk does not exists", func() {
 			disk := &ec.PersistentDisk{Flavor: "persistent-disk", ID: "fake-disk-id"}
@@ -271,7 +262,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).Should(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("returns an error for HasDisk when server returns error", func() {
 			disk := &ec.PersistentDisk{Flavor: "persistent-disk", ID: "fake-disk-id"}
@@ -291,7 +281,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given no arguments", func() {
 			actions := map[string]cpi.ActionFn{
@@ -304,7 +293,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given an invalid argument", func() {
 			actions := map[string]cpi.ActionFn{
@@ -317,7 +305,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 	})
 
@@ -349,7 +336,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).Should(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("returns an empty list if no disks are attached to VM", func() {
 			list := &ec.DiskList{
@@ -374,7 +360,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).Should(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("returns an error when server returns error", func() {
 			list := &ec.DiskList{[]ec.PersistentDisk{}}
@@ -394,7 +379,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 	})
 	Describe("AttachDisk", func() {
@@ -444,7 +428,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).Should(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("returns an error when VM not found", func() {
 			attachTask := &ec.Task{Operation: "ATTACH_DISK", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-disk-id"}}
@@ -470,7 +453,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 	})
 	Describe("DetachDisk", func() {
@@ -520,7 +502,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).Should(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("returns an error when VM not found", func() {
 			attachTask := &ec.Task{Operation: "DETACH_DISK", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-disk-id"}}
@@ -546,7 +527,6 @@ var _ = Describe("Disk", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 	})
 })

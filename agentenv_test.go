@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/esxcloud/bosh-esxcloud-cpi/cmd"
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
+	"github.com/esxcloud/bosh-esxcloud-cpi/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"os"
@@ -30,7 +31,7 @@ var _ = Describe("AgentEnv", func() {
 				Agent: &cpi.AgentConfig{Mbus: "fake-mbus", NTP: []string{"fake-ntp"}},
 			},
 			Runner: runner,
-			Logger: newLogger(CurrentGinkgoTestDescription()),
+			Logger: logger.New(),
 		}
 		env = map[string]interface{}{"prop1": "value1", "prop2": 123}
 		networks = map[string]interface{}{"default": map[string]interface{}{}}

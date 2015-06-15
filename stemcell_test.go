@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
+	"github.com/esxcloud/bosh-esxcloud-cpi/logger"
 	. "github.com/esxcloud/bosh-esxcloud-cpi/mocks"
 	ec "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
 	. "github.com/onsi/ginkgo"
@@ -23,7 +24,7 @@ var _ = Describe("Stemcell", func() {
 		httpClient := &http.Client{Transport: DefaultMockTransport}
 		ctx = &cpi.Context{
 			Client: ec.NewTestClient(server.URL, nil, httpClient),
-			Logger: newLogger(CurrentGinkgoTestDescription()),
+			Logger: logger.New(),
 		}
 	})
 
@@ -55,7 +56,6 @@ var _ = Describe("Stemcell", func() {
 			Expect(res.Error).Should(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 
 		It("returns an error when APIfe returns a 500", func() {
@@ -81,7 +81,6 @@ var _ = Describe("Stemcell", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 
 		It("returns an error when stemcell file does not exist", func() {
@@ -95,7 +94,6 @@ var _ = Describe("Stemcell", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given no arguments", func() {
 			actions := map[string]cpi.ActionFn{
@@ -108,7 +106,6 @@ var _ = Describe("Stemcell", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given an invalid argument", func() {
 			actions := map[string]cpi.ActionFn{
@@ -121,7 +118,6 @@ var _ = Describe("Stemcell", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 	})
 
@@ -149,7 +145,6 @@ var _ = Describe("Stemcell", func() {
 			Expect(res.Error).Should(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("returns an error for missing stemcell delete", func() {
 			deleteTask := &ec.Task{Operation: "DELETE_IMAGE", State: "QUEUED", ID: "fake-task-id", Entity: ec.Entity{ID: "fake-image-id"}}
@@ -174,7 +169,6 @@ var _ = Describe("Stemcell", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given no arguments", func() {
 			actions := map[string]cpi.ActionFn{
@@ -187,7 +181,6 @@ var _ = Describe("Stemcell", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 		It("should return an error when given an invalid argument", func() {
 			actions := map[string]cpi.ActionFn{
@@ -200,7 +193,6 @@ var _ = Describe("Stemcell", func() {
 			Expect(res.Error).ShouldNot(BeNil())
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res.Log).ShouldNot(BeEmpty())
-			Expect(res.Log).Should(containLogData())
 		})
 	})
 })

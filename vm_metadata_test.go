@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
+	"github.com/esxcloud/bosh-esxcloud-cpi/logger"
 	. "github.com/esxcloud/bosh-esxcloud-cpi/mocks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -14,7 +15,7 @@ var _ = Describe("VM metadata", func() {
 
 	BeforeEach(func() {
 		ctx = &cpi.Context{
-			Logger: newLogger(CurrentGinkgoTestDescription()),
+			Logger: logger.New(),
 		}
 	})
 
@@ -26,6 +27,5 @@ var _ = Describe("VM metadata", func() {
 		Expect(res.Result).To(BeNil())
 		Expect(err).To(BeNil())
 		Expect(res.Log).ShouldNot(BeEmpty())
-		Expect(res.Log).Should(containLogData())
 	})
 })
