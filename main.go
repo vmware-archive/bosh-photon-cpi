@@ -118,7 +118,7 @@ func dispatch(context *cpi.Context, actions map[string]cpi.ActionFn, method stri
 }
 
 func createResponse(result interface{}, logData string) []byte {
-	res := &cpi.Response{Result: result, Log: logData}
+	res := &cpi.Response{Result: result, Log: logData, Error: nil}
 	resBytes, err := json.Marshal(res)
 	if err != nil {
 		panic(err)
