@@ -6,31 +6,33 @@ import (
 	"fmt"
 	"github.com/esxcloud/bosh-esxcloud-cpi/cmd"
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
+	ec "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
 	"io/ioutil"
 	"os"
 	p "path"
 )
 
-func getAgentEnvMetadata(vmID string) (res *cpi.AgentEnv, err error) {
-	// TODO: replace temp file with VM metadata API
-	file := p.Join(os.TempDir(), vmID)
-	buf, err := ioutil.ReadFile(file)
+func getAgentEnvMetadata(ctx *cpi.Context, vmID string) (res *cpi.AgentEnv, err error) {
+	vm, err := ctx.Client.VMs.Get(vmID)
 	if err != nil {
 		return
 	}
+	// Easiest way to convert the internal struct used by the JSON marshaler
+	// is to reserialize it to JSON and deserialize it back.
+	// mapstructure library is supposed to do this, but it was omitting arbitrary fields.
 	res = &cpi.AgentEnv{}
+	buf, err := json.Marshal(vm.Metadata)
+	if err != nil {
+		return
+	}
 	err = json.Unmarshal(buf, res)
 	return
 }
 
-func putAgentEnvMetadata(vmID string, env *cpi.AgentEnv) (err error) {
-	buf, err := json.Marshal(env)
-	if err != nil {
-		return
-	}
-	// TODO: replace temp file with VM metadata API
-	file := p.Join(os.TempDir(), vmID)
-	err = ioutil.WriteFile(file, buf, 0777)
+func putAgentEnvMetadata(ctx *cpi.Context, vmID string, env *cpi.AgentEnv) (err error) {
+	metadata := &ec.VmMetadata{env}
+	// Task returns instantly for SetMetadata
+	_, err = ctx.Client.VMs.SetMetadata(vmID, metadata)
 	return
 }
 
@@ -84,7 +86,7 @@ func updateAgentEnv(ctx *cpi.Context, vmID string, env *cpi.AgentEnv) (err error
 
 	// Store env JSON as metadata so it can be picked up by attach/detach disk
 	ctx.Logger.Info("Updating metadata for VM")
-	err = putAgentEnvMetadata(vmID, env)
+	err = putAgentEnvMetadata(ctx, vmID, env)
 	if err != nil {
 		return
 	}

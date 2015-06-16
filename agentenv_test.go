@@ -4,8 +4,12 @@ import (
 	"github.com/esxcloud/bosh-esxcloud-cpi/cmd"
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
 	"github.com/esxcloud/bosh-esxcloud-cpi/logger"
+	. "github.com/esxcloud/bosh-esxcloud-cpi/mocks"
+	ec "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"net/http"
+	"net/http/httptest"
 	"os"
 )
 
@@ -14,12 +18,20 @@ var _ = Describe("AgentEnv", func() {
 		ctx    *cpi.Context
 		env    *cpi.AgentEnv
 		runner cmd.Runner
+		server *httptest.Server
 	)
 
 	BeforeEach(func() {
+		server = NewMockServer()
 		runner = cmd.NewRunner()
+		httpClient := &http.Client{Transport: DefaultMockTransport}
 		ctx = &cpi.Context{
+			Client: ec.NewTestClient(server.URL, nil, httpClient),
 			Config: &cpi.Config{
+				ESXCloud: &cpi.ESXCloudConfig{
+					Target:    server.URL,
+					ProjectID: "fake-project-id",
+				},
 				Agent: &cpi.AgentConfig{Mbus: "fake-mbus", NTP: []string{"fake-ntp"}},
 			},
 			Runner: runner,
@@ -28,8 +40,6 @@ var _ = Describe("AgentEnv", func() {
 		env = &cpi.AgentEnv{AgentID: "agent-id", VM: cpi.VMSpec{Name: "vm-name", ID: "vm-id"}}
 	})
 
-	// This test requires genisoimage to truly verify ISO creation. On Linux, a real
-	// cmd.Runner is used and commands are really executed. On other platforms, it's mocked.
 	It("Successfully creates an ISO", func() {
 		iso, err := createEnvISO(env, runner)
 		defer os.Remove(iso)
@@ -47,9 +57,25 @@ var _ = Describe("AgentEnv", func() {
 	Describe("Metadata", func() {
 		It("successfully puts and gets agent env data", func() {
 			vmID := "fake-vm-id"
-			err := putAgentEnvMetadata(vmID, env)
+			metadataTask := &ec.Task{State: "COMPLETED"}
+			vm := &ec.VM{
+				ID:       vmID,
+				Metadata: env,
+			}
+
+			RegisterResponder(
+				"POST",
+				server.URL+"/v1/vms/"+vmID+"/set_metadata",
+				CreateResponder(200, ToJson(metadataTask)))
+			RegisterResponder(
+				"GET",
+				server.URL+"/v1/vms/"+vmID,
+				CreateResponder(200, ToJson(vm)))
+
+			err := putAgentEnvMetadata(ctx, vmID, env)
 			Expect(err).ToNot(HaveOccurred())
-			env2, err := getAgentEnvMetadata(vmID)
+
+			env2, err := getAgentEnvMetadata(ctx, vmID)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(env2).Should(Equal(env))
 		})

@@ -161,9 +161,12 @@ func AttachDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 
 	ctx.Logger.Info("Getting metadata for VM")
 	// Get agent env config from VM metadata and update disk ID
-	env, err := getAgentEnvMetadata(vmCID)
+	env, err := getAgentEnvMetadata(ctx, vmCID)
 	if err != nil {
 		return
+	}
+	if env.Disks == nil {
+		env.Disks = map[string]interface{}{}
 	}
 	persistent := "persistent"
 	if _, ok := env.Disks[persistent]; !ok {
@@ -215,7 +218,7 @@ func DetachDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 
 	// Get agent env config from VM metadata and remove disk ID
 	ctx.Logger.Info("Getting metadata for VM")
-	env, err := getAgentEnvMetadata(vmCID)
+	env, err := getAgentEnvMetadata(ctx, vmCID)
 	if err != nil {
 		return
 	}

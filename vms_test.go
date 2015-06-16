@@ -70,6 +70,7 @@ var _ = Describe("VMs", func() {
 					ec.AttachedDisk{Name: "bosh-ephemeral-disk", ID: "fake-eph-disk-id"},
 				},
 			}
+			metadataTask := &ec.Task{State: "COMPLETED"}
 
 			RegisterResponder(
 				"POST",
@@ -95,6 +96,11 @@ var _ = Describe("VMs", func() {
 				"POST",
 				server.URL+"/v1/vms/"+createTask.Entity.ID+"/operations",
 				CreateResponder(200, ToJson(onTask)))
+			RegisterResponder(
+				"POST",
+				server.URL+"/v1/vms/fake-vm-id/set_metadata",
+				CreateResponder(200, ToJson(metadataTask)))
+
 			RegisterResponder(
 				"GET",
 				server.URL+"/v1/tasks/"+isoTask.ID,
