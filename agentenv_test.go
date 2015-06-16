@@ -7,7 +7,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"os"
-	"runtime"
 )
 
 var _ = Describe("AgentEnv", func() {
@@ -19,13 +18,7 @@ var _ = Describe("AgentEnv", func() {
 	)
 
 	BeforeEach(func() {
-		if runtime.GOOS == "linux" {
-			runner = cmd.NewRunner()
-		} else {
-			runner = &fakeRunner{map[string]string{
-				"file": "ISO 9660 CD-ROM filesystem data",
-			}}
-		}
+		runner = cmd.NewRunner()
 		ctx = &cpi.Context{
 			Config: &cpi.Config{
 				Agent: &cpi.AgentConfig{Mbus: "fake-mbus", NTP: []string{"fake-ntp"}},
@@ -44,7 +37,7 @@ var _ = Describe("AgentEnv", func() {
 		iso, err := createEnvISO(env, runner)
 		defer os.Remove(iso)
 
-		Expect(err).Should(BeNil())
+		Expect(err).Should(BeNil(), "Test requires mkisofs, install with 'brew install cdrtools' on Mac")
 
 		// Verify we have produced a valid ISO by checking the output of "file <iso>"
 		out, err := runner.Run("file", iso)

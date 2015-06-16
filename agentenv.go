@@ -79,7 +79,7 @@ func createEnvISO(env *cpi.AgentEnv, runner cmd.Runner) (path string, err error)
 		return
 	}
 	envISO.Close()
-	output, err := runner.Run("genisoimage", "-o", envISO.Name(), envFile.Name())
+	output, err := runner.Run("mkisofs", "-o", envISO.Name(), envFile.Name())
 	if err != nil {
 		out := string(output[:])
 		return "", errors.New(fmt.Sprintf("Failed to generate ISO for agent settings: %v\n%s", err, out))
