@@ -6,48 +6,14 @@ import (
 	"strconv"
 )
 
+// Contains functionality for disks API.
 type DisksAPI struct {
 	client *Client
 }
 
-type LocalitySpec struct {
-	Kind string `json:"kind"`
-	ID   string `json:"id"`
-}
-
-type DiskCreateSpec struct {
-	Flavor     string         `json:"flavor"`
-	Kind       string         `json:"kind"`
-	CapacityGB int            `json:"capacityGb"`
-	Affinities []LocalitySpec `json:"localitySpec,omitempty"`
-	Name       string         `json:"name"`
-	Tags       []string       `json:"tags,omitempty"`
-}
-
-type PersistentDisk struct {
-	Flavor     string          `json:"flavor"`
-	Cost       []QuotaLineItem `json:"cost"`
-	Kind       string          `json:"kind"`
-	Datastore  string          `json:"datastore,omitempty"`
-	CapacityGB int             `json:"capacityGb,omitempty"`
-	Name       string          `json:"name"`
-	State      string          `json:"state"`
-	ID         string          `json:"id"`
-	VMs        []string        `json:"vms"`
-	Tags       []string        `json:"tags,omitempty"`
-	SelfLink   string          `json:"selfLink,omitempty"`
-}
-
-type DiskList struct {
-	Items []PersistentDisk `json:"items"`
-}
-
-type Options struct {
-	Name string
-}
-
-func (api *DisksAPI) Get(id string) (disk *PersistentDisk, err error) {
-	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/disks/"+id)
+// Gets a PersistentDisk for the disk with specified ID.
+func (api *DisksAPI) Get(diskID string) (disk *PersistentDisk, err error) {
+	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/disks/"+diskID)
 	if err != nil {
 		return
 	}
@@ -61,8 +27,9 @@ func (api *DisksAPI) Get(id string) (disk *PersistentDisk, err error) {
 	return
 }
 
-func (api *DisksAPI) Delete(id string, force bool) (task *Task, err error) {
-	res, err := rest.Delete(api.client.httpClient, api.client.Endpoint+"/v1/disks/"+id+"?force="+strconv.FormatBool(force))
+// Deletes a disk with the specified ID.
+func (api *DisksAPI) Delete(diskID string, force bool) (task *Task, err error) {
+	res, err := rest.Delete(api.client.httpClient, api.client.Endpoint+"/v1/disks/"+diskID+"?force="+strconv.FormatBool(force))
 	if err != nil {
 		return
 	}

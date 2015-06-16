@@ -11,12 +11,12 @@ func TestCreateGetDeleteDisk(t *testing.T) {
 	server.SetResponseJson(200, mockTask)
 	defer server.Close()
 
-	tenantSpec := &TenantCreateSpec{Name: RandomString(10)}
+	tenantSpec := &TenantCreateSpec{Name: randomString(10)}
 	tenantTask, _ := client.Tenants.Create(tenantSpec)
 
 	// Create resource ticket
 	resSpec := &ResourceTicketCreateSpec{
-		Name:   RandomString(10),
+		Name:   randomString(10),
 		Limits: []QuotaLineItem{QuotaLineItem{Unit: "GB", Value: 16, Key: "vm.memory"}},
 	}
 	_, _ = client.Tenants.CreateResourceTicket(tenantTask.Entity.ID, resSpec)
@@ -27,7 +27,7 @@ func TestCreateGetDeleteDisk(t *testing.T) {
 			resSpec.Name,
 			[]QuotaLineItem{QuotaLineItem{"GB", 2, "vm.memory"}},
 		},
-		RandomString(10),
+		randomString(10),
 	}
 	projTask, _ := client.Tenants.CreateProject(tenantTask.Entity.ID, projSpec)
 
@@ -35,7 +35,7 @@ func TestCreateGetDeleteDisk(t *testing.T) {
 	flavorSpec := &FlavorCreateSpec{
 		[]QuotaLineItem{QuotaLineItem{"COUNT", 1, "persistent-disk.cost"}},
 		"persistent-disk",
-		RandomString(10),
+		randomString(10),
 	}
 	_, _ = client.Flavors.Create(flavorSpec)
 
@@ -46,7 +46,7 @@ func TestCreateGetDeleteDisk(t *testing.T) {
 		Flavor:     flavorSpec.Name,
 		Kind:       "persistent-disk",
 		CapacityGB: 2,
-		Name:       RandomString(10),
+		Name:       randomString(10),
 	}
 	diskTask, err := client.Projects.CreateDisk(projTask.Entity.ID, diskSpec)
 	if err != nil {

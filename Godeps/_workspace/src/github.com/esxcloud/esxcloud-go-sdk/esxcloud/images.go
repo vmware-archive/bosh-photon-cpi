@@ -6,32 +6,15 @@ import (
 	"io"
 )
 
+// Contains functionality for images API.
 type ImagesAPI struct {
 	client *Client
 }
 
-type Image struct {
-	Size     int64    `json:"size"`
-	Kind     string   `json:"kind"`
-	Name     string   `json:"name"`
-	State    string   `json:"state"`
-	ID       string   `json:"id"`
-	Tags     []string `json:"tags"`
-	SelfLink string   `json:"selfLink"`
-}
-
-type ImageCreateOptions struct {
-	ReplicationType string
-}
-
-type Images struct {
-	Items []Image `json:"items"`
-}
-
 // Uploads a new image, reading from the specified image path.
-// If opts is nil, default options are used.
-func (api *ImagesAPI) CreateFromFile(imagePath string, opts *ImageCreateOptions) (task *Task, err error) {
-	params := imageCreateOptionsToMap(opts)
+// If options is nil, default options are used.
+func (api *ImagesAPI) CreateFromFile(imagePath string, options *ImageCreateOptions) (task *Task, err error) {
+	params := imageCreateOptionsToMap(options)
 	res, err := rest.MultipartUploadFile(api.client.httpClient, api.client.Endpoint+"/v1/images", imagePath, params)
 	if err != nil {
 		return
@@ -44,9 +27,9 @@ func (api *ImagesAPI) CreateFromFile(imagePath string, opts *ImageCreateOptions)
 // Uploads a new image, reading from the specified io.Reader.
 // Name is a descriptive name of the image, it is used in the filename field of the Content-Disposition header,
 // and does not need to be unique.
-// If opts is nil, default options are used.
-func (api *ImagesAPI) Create(reader io.Reader, name string, opts *ImageCreateOptions) (task *Task, err error) {
-	params := imageCreateOptionsToMap(opts)
+// If options is nil, default options are used.
+func (api *ImagesAPI) Create(reader io.Reader, name string, options *ImageCreateOptions) (task *Task, err error) {
+	params := imageCreateOptionsToMap(options)
 	res, err := rest.MultipartUpload(api.client.httpClient, api.client.Endpoint+"/v1/images", reader, name, params)
 	if err != nil {
 		return
@@ -56,7 +39,8 @@ func (api *ImagesAPI) Create(reader io.Reader, name string, opts *ImageCreateOpt
 	return result, err
 }
 
-func (api *ImagesAPI) GetAll(client Client) (images *Images, err error) {
+// Gets all images on this esxcloud instance.
+func (api *ImagesAPI) GetAll() (images *Images, err error) {
 	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/images")
 	if err != nil {
 		return
@@ -71,8 +55,9 @@ func (api *ImagesAPI) GetAll(client Client) (images *Images, err error) {
 	return &result, nil
 }
 
-func (api *ImagesAPI) Get(id string) (image *Image, err error) {
-	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/images/"+id)
+// Gets details of image with the specified ID.
+func (api *ImagesAPI) Get(imageID string) (image *Image, err error) {
+	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/images/"+imageID)
 	if err != nil {
 		return
 	}
@@ -86,8 +71,9 @@ func (api *ImagesAPI) Get(id string) (image *Image, err error) {
 	return &result, nil
 }
 
-func (api *ImagesAPI) Delete(id string) (task *Task, err error) {
-	res, err := rest.Delete(api.client.httpClient, api.client.Endpoint+"/v1/images/"+id)
+// Deletes image with the specified ID.
+func (api *ImagesAPI) Delete(imageID string) (task *Task, err error) {
+	res, err := rest.Delete(api.client.httpClient, api.client.Endpoint+"/v1/images/"+imageID)
 	if err != nil {
 		return
 	}

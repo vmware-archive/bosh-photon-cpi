@@ -12,7 +12,7 @@ func TestCreateGetAndDelete(t *testing.T) {
 	defer server.Close()
 
 	flavorSpec := &FlavorCreateSpec{
-		Name: RandomString(10),
+		Name: randomString(10),
 		Kind: "vm",
 		Cost: []QuotaLineItem{QuotaLineItem{"GB", 16, "vm.memory"}},
 	}
@@ -40,11 +40,11 @@ func TestCreateGetAndDelete(t *testing.T) {
 		t.Error("Flavor returned by Get did not match spec")
 	}
 
-	// Test Find
+	// Test Get
 	server.SetResponseJson(200, &FlavorList{[]Flavor{Flavor{Name: flavorSpec.Name}}})
-	flavorList, err := client.Flavors.Find(&FlavorOptions{Name: flavorSpec.Name})
+	flavorList, err := client.Flavors.GetAll(&FlavorGetOptions{Name: flavorSpec.Name})
 	if err != nil {
-		t.Error("Did not expect error from Find")
+		t.Error("Did not expect error from Get")
 	}
 	var found bool
 	for _, f := range flavorList.Items {

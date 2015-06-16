@@ -7,60 +7,9 @@ import (
 	"strconv"
 )
 
+// Contains functionality for VMs API.
 type VmAPI struct {
 	client *Client
-}
-
-type VmCreateSpec struct {
-	Flavor        string         `json:"flavor"`
-	SourceImageID string         `json:"sourceImageId"`
-	AttachedDisks []AttachedDisk `json:"attachedDisks"`
-	Affinities    []LocalitySpec `json:"affinities,omitempty"`
-	Name          string         `json:"name"`
-	Tags          []string       `json:"tags,omitempty"`
-}
-
-type VmOperation struct {
-	Operation string                 `json:"operation"`
-	Arguments map[string]interface{} `json:"arguments,omitempty"`
-}
-
-type AttachedDisk struct {
-	Flavor     string `json:"flavor"`
-	Kind       string `json:"kind"`
-	CapacityGB int    `json:"capacityGb"`
-	Name       string `json:"name"`
-	State      string `json:"state"`
-	ID         string `json:"id,omitempty"`
-	BootDisk   bool   `json:"bootDisk"`
-}
-
-type VM struct {
-	SourceImageID string          `json:"sourceImageId,omitempty"`
-	Cost          []QuotaLineItem `json:"cost"`
-	Kind          string          `json:"kind"`
-	AttachedDisks []AttachedDisk  `json:"attachedDisks"`
-	Datastore     string          `json:"datastore,omitempty"`
-	AttachedISOs  []ISO           `json:"attachedIsos,omitempty"`
-	Tags          []string        `json:"tags,omitempty"`
-	SelfLink      string          `json:"selfLink,omitempty"`
-	Flavor        string          `json:"flavor"`
-	Host          string          `json:"host,omitempty"`
-	Name          string          `json:"name"`
-	State         string          `json:"string"`
-	ID            string          `json:"id"`
-}
-
-type ISO struct {
-	Size int64  `json:"size,omitempty"`
-	Kind string `json:"kind,omitempty"`
-	Name string `json:"name"`
-	ID   string `json:"id"`
-}
-
-type VmDiskOperation struct {
-	DiskID    string                 `json:"diskId"`
-	Arguments map[string]interface{} `json:"arguments,omitempty"`
 }
 
 func (api *VmAPI) Get(id string) (vm *VM, err error) {
@@ -147,6 +96,20 @@ func (api *VmAPI) Operation(id string, op *VmOperation) (task *Task, err error) 
 		return
 	}
 	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+"/v1/vms/"+id+"/operations", bytes.NewReader(body))
+	if err != nil {
+		return
+	}
+	defer res.Body.Close()
+	task, err = getTask(getError(res))
+	return
+}
+
+func (api *VmAPI) SetMetadata(id string, metadata *VmMetadata) (task *Task, err error) {
+	body, err := json.Marshal(metadata)
+	if err != nil {
+		return
+	}
+	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+"/v1/vms/"+id+"/set_metadata", bytes.NewReader(body))
 	if err != nil {
 		return
 	}

@@ -1,6 +1,7 @@
 package esxcloud
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -11,12 +12,12 @@ func TestCreateGetDeleteVM(t *testing.T) {
 	server.SetResponseJson(200, mockTask)
 	defer server.Close()
 
-	tenantSpec := &TenantCreateSpec{Name: RandomString(10)}
+	tenantSpec := &TenantCreateSpec{Name: randomString(10)}
 	tenantTask, _ := client.Tenants.Create(tenantSpec)
 
 	// Create resource ticket
 	resSpec := &ResourceTicketCreateSpec{
-		Name:   RandomString(10),
+		Name:   randomString(10),
 		Limits: []QuotaLineItem{QuotaLineItem{Unit: "GB", Value: 4, Key: "vm.memory"}},
 	}
 	_, _ = client.Tenants.CreateResourceTicket(tenantTask.Entity.ID, resSpec)
@@ -30,7 +31,7 @@ func TestCreateGetDeleteVM(t *testing.T) {
 				QuotaLineItem{"COUNT", 100, "vm"},
 			},
 		},
-		RandomString(10),
+		randomString(10),
 	}
 	projTask, _ := client.Tenants.CreateProject(tenantTask.Entity.ID, projSpec)
 
@@ -38,7 +39,7 @@ func TestCreateGetDeleteVM(t *testing.T) {
 	flavorSpec := &FlavorCreateSpec{
 		[]QuotaLineItem{QuotaLineItem{"COUNT", 1, "ephemeral-disk.cost"}},
 		"ephemeral-disk",
-		RandomString(10),
+		randomString(10),
 	}
 	_, _ = client.Flavors.Create(flavorSpec)
 
@@ -50,7 +51,7 @@ func TestCreateGetDeleteVM(t *testing.T) {
 	imageTask, _ = client.Tasks.Wait(imageTask.ID)
 
 	vmFlavorSpec := &FlavorCreateSpec{
-		Name: RandomString(10),
+		Name: randomString(10),
 		Kind: "vm",
 		Cost: []QuotaLineItem{
 			QuotaLineItem{"GB", 2, "vm.memory"},
@@ -70,12 +71,12 @@ func TestCreateGetDeleteVM(t *testing.T) {
 				CapacityGB: 1,
 				Flavor:     flavorSpec.Name,
 				Kind:       "ephemeral-disk",
-				Name:       RandomString(10),
+				Name:       randomString(10),
 				State:      "STARTED",
 				BootDisk:   true,
 			},
 		},
-		Name: RandomString(10),
+		Name: randomString(10),
 	}
 
 	vmCreateTask, err := client.Projects.CreateVM(projTask.Entity.ID, vmSpec)
@@ -103,7 +104,15 @@ func TestCreateGetDeleteVM(t *testing.T) {
 		t.Error("Expected task status to be COMPLETED")
 	}
 
-	mockVm := &VM{Name: vmSpec.Name}
+	// Set VM metadata
+	metadata := &VmMetadata{Metadata: map[string]interface{}{"key1": "value1"}}
+	_, err = client.VMs.SetMetadata(vmCreateTask.Entity.ID, metadata)
+	if err != nil {
+		t.Error("Not expecting error")
+	}
+
+	// Get VM
+	mockVm := &VM{Name: vmSpec.Name, Metadata: metadata.Metadata}
 	server.SetResponseJson(200, mockVm)
 	vm, err := client.VMs.Get(vmCreateTask.Entity.ID)
 	if err != nil {
@@ -114,6 +123,9 @@ func TestCreateGetDeleteVM(t *testing.T) {
 	}
 	if vm.Name != vmSpec.Name {
 		t.Error("Did not see expected VM from Get VM")
+	}
+	if !reflect.DeepEqual(metadata.Metadata, vm.Metadata) {
+		t.Error("VM metadata did not match expected")
 	}
 
 	// Cleanup VM
@@ -173,12 +185,12 @@ func TestAttachDetachDisk(t *testing.T) {
 	server.SetResponseJson(200, mockTask)
 	defer server.Close()
 
-	tenantSpec := &TenantCreateSpec{Name: RandomString(10)}
+	tenantSpec := &TenantCreateSpec{Name: randomString(10)}
 	tenantTask, _ := client.Tenants.Create(tenantSpec)
 
 	// Create resource ticket
 	resSpec := &ResourceTicketCreateSpec{
-		Name:   RandomString(10),
+		Name:   randomString(10),
 		Limits: []QuotaLineItem{QuotaLineItem{Unit: "GB", Value: 4, Key: "vm.memory"}},
 	}
 	_, _ = client.Tenants.CreateResourceTicket(tenantTask.Entity.ID, resSpec)
@@ -192,7 +204,7 @@ func TestAttachDetachDisk(t *testing.T) {
 				QuotaLineItem{"COUNT", 100, "vm"},
 			},
 		},
-		RandomString(10),
+		randomString(10),
 	}
 	projTask, _ := client.Tenants.CreateProject(tenantTask.Entity.ID, projSpec)
 
@@ -200,7 +212,7 @@ func TestAttachDetachDisk(t *testing.T) {
 	ephemeralFlavor := &FlavorCreateSpec{
 		[]QuotaLineItem{QuotaLineItem{"COUNT", 1, "ephemeral-disk.cost"}},
 		"ephemeral-disk",
-		RandomString(10),
+		randomString(10),
 	}
 	_, _ = client.Flavors.Create(ephemeralFlavor)
 
@@ -208,7 +220,7 @@ func TestAttachDetachDisk(t *testing.T) {
 	persistentFlavor := &FlavorCreateSpec{
 		[]QuotaLineItem{QuotaLineItem{"COUNT", 1, "persistent-disk.cost"}},
 		"persistent-disk",
-		RandomString(10),
+		randomString(10),
 	}
 	_, _ = client.Flavors.Create(persistentFlavor)
 
@@ -217,7 +229,7 @@ func TestAttachDetachDisk(t *testing.T) {
 		Flavor:     persistentFlavor.Name,
 		Kind:       "persistent-disk",
 		CapacityGB: 1,
-		Name:       RandomString(10),
+		Name:       randomString(10),
 	}
 	diskTask, _ := client.Projects.CreateDisk(projTask.Entity.ID, diskSpec)
 	diskTask, _ = client.Tasks.Wait(diskTask.ID)
@@ -230,7 +242,7 @@ func TestAttachDetachDisk(t *testing.T) {
 	imageTask, _ = client.Tasks.Wait(imageTask.ID)
 
 	vmFlavorSpec := &FlavorCreateSpec{
-		Name: RandomString(10),
+		Name: randomString(10),
 		Kind: "vm",
 		Cost: []QuotaLineItem{
 			QuotaLineItem{"GB", 2, "vm.memory"},
@@ -250,12 +262,12 @@ func TestAttachDetachDisk(t *testing.T) {
 				CapacityGB: 1,
 				Flavor:     ephemeralFlavor.Name,
 				Kind:       "ephemeral-disk",
-				Name:       RandomString(10),
+				Name:       randomString(10),
 				State:      "STARTED",
 				BootDisk:   true,
 			},
 		},
-		Name: RandomString(10),
+		Name: randomString(10),
 	}
 	vmCreateTask, _ := client.Projects.CreateVM(projTask.Entity.ID, vmSpec)
 
@@ -384,12 +396,12 @@ func TestAttachDetachISO(t *testing.T) {
 	server.SetResponseJson(200, mockTask)
 	defer server.Close()
 
-	tenantSpec := &TenantCreateSpec{Name: RandomString(10)}
+	tenantSpec := &TenantCreateSpec{Name: randomString(10)}
 	tenantTask, _ := client.Tenants.Create(tenantSpec)
 
 	// Create resource ticket
 	resSpec := &ResourceTicketCreateSpec{
-		Name:   RandomString(10),
+		Name:   randomString(10),
 		Limits: []QuotaLineItem{QuotaLineItem{Unit: "GB", Value: 4, Key: "vm.memory"}},
 	}
 	_, _ = client.Tenants.CreateResourceTicket(tenantTask.Entity.ID, resSpec)
@@ -403,7 +415,7 @@ func TestAttachDetachISO(t *testing.T) {
 				QuotaLineItem{"COUNT", 100, "vm"},
 			},
 		},
-		RandomString(10),
+		randomString(10),
 	}
 	projTask, _ := client.Tenants.CreateProject(tenantTask.Entity.ID, projSpec)
 
@@ -411,7 +423,7 @@ func TestAttachDetachISO(t *testing.T) {
 	ephemeralFlavor := &FlavorCreateSpec{
 		[]QuotaLineItem{QuotaLineItem{"COUNT", 1, "ephemeral-disk.cost"}},
 		"ephemeral-disk",
-		RandomString(10),
+		randomString(10),
 	}
 	_, _ = client.Flavors.Create(ephemeralFlavor)
 
@@ -419,7 +431,7 @@ func TestAttachDetachISO(t *testing.T) {
 	persistentFlavor := &FlavorCreateSpec{
 		[]QuotaLineItem{QuotaLineItem{"COUNT", 1, "persistent-disk.cost"}},
 		"persistent-disk",
-		RandomString(10),
+		randomString(10),
 	}
 	_, _ = client.Flavors.Create(persistentFlavor)
 
@@ -431,7 +443,7 @@ func TestAttachDetachISO(t *testing.T) {
 	imageTask, _ = client.Tasks.Wait(imageTask.ID)
 
 	vmFlavorSpec := &FlavorCreateSpec{
-		Name: RandomString(10),
+		Name: randomString(10),
 		Kind: "vm",
 		Cost: []QuotaLineItem{
 			QuotaLineItem{"GB", 2, "vm.memory"},
@@ -451,12 +463,12 @@ func TestAttachDetachISO(t *testing.T) {
 				CapacityGB: 1,
 				Flavor:     ephemeralFlavor.Name,
 				Kind:       "ephemeral-disk",
-				Name:       RandomString(10),
+				Name:       randomString(10),
 				State:      "STARTED",
 				BootDisk:   true,
 			},
 		},
-		Name: RandomString(10),
+		Name: randomString(10),
 	}
 	vmCreateTask, err := client.Projects.CreateVM(projTask.Entity.ID, vmSpec)
 
@@ -557,12 +569,12 @@ func TestVmPowerOnAndOff(t *testing.T) {
 	server.SetResponseJson(200, createMockTask("CREATE_TENANT", "COMPLETED"))
 	defer server.Close()
 
-	tenantSpec := &TenantCreateSpec{Name: RandomString(10)}
+	tenantSpec := &TenantCreateSpec{Name: randomString(10)}
 	tenantTask, _ := client.Tenants.Create(tenantSpec)
 
 	// Create resource ticket
 	resSpec := &ResourceTicketCreateSpec{
-		Name:   RandomString(10),
+		Name:   randomString(10),
 		Limits: []QuotaLineItem{QuotaLineItem{Unit: "GB", Value: 4, Key: "vm.memory"}},
 	}
 	_, _ = client.Tenants.CreateResourceTicket(tenantTask.Entity.ID, resSpec)
@@ -576,7 +588,7 @@ func TestVmPowerOnAndOff(t *testing.T) {
 				QuotaLineItem{"COUNT", 100, "vm"},
 			},
 		},
-		RandomString(10),
+		randomString(10),
 	}
 	projTask, _ := client.Tenants.CreateProject(tenantTask.Entity.ID, projSpec)
 
@@ -584,7 +596,7 @@ func TestVmPowerOnAndOff(t *testing.T) {
 	flavorSpec := &FlavorCreateSpec{
 		[]QuotaLineItem{QuotaLineItem{"COUNT", 1, "ephemeral-disk.cost"}},
 		"ephemeral-disk",
-		RandomString(10),
+		randomString(10),
 	}
 	_, _ = client.Flavors.Create(flavorSpec)
 
@@ -595,7 +607,7 @@ func TestVmPowerOnAndOff(t *testing.T) {
 	imageTask, _ = client.Tasks.Wait(imageTask.ID)
 
 	vmFlavorSpec := &FlavorCreateSpec{
-		Name: RandomString(10),
+		Name: randomString(10),
 		Kind: "vm",
 		Cost: []QuotaLineItem{
 			QuotaLineItem{"GB", 2, "vm.memory"},
@@ -614,12 +626,12 @@ func TestVmPowerOnAndOff(t *testing.T) {
 				CapacityGB: 1,
 				Flavor:     flavorSpec.Name,
 				Kind:       "ephemeral-disk",
-				Name:       RandomString(10),
+				Name:       randomString(10),
 				State:      "STARTED",
 				BootDisk:   true,
 			},
 		},
-		Name: RandomString(10),
+		Name: randomString(10),
 	}
 	vmCreateTask, err := client.Projects.CreateVM(projTask.Entity.ID, vmSpec)
 	if err != nil {

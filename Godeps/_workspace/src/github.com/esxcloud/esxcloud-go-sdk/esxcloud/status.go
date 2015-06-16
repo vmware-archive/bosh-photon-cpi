@@ -5,23 +5,12 @@ import (
 	"github.com/esxcloud/esxcloud-go-sdk/esxcloud/internal/rest"
 )
 
+// Contains functionality for status API.
 type StatusAPI struct {
 	client *Client
 }
 
-type Component struct {
-	Component string
-	Message   string
-	Status    string
-}
-
-type Status struct {
-	Status     string
-	Components []Component
-}
-
-// Returns the status of an esxcloud endpoint. Returns ApiError or HttpError
-// in the event of an API error or unknown HTTP error, respectively.
+// Returns the status of an esxcloud endpoint.
 func (api *StatusAPI) Get() (status *Status, err error) {
 	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/status")
 	if err != nil {

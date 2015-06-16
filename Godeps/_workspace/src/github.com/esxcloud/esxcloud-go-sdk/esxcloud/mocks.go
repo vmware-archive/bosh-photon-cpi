@@ -74,7 +74,7 @@ func createMockTask(operation, state string, steps ...Step) *Task {
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
-func RandomString(n int) string {
+func randomString(n int) string {
 	rand.Seed(time.Now().UTC().UnixNano())
 	b := make([]rune, n)
 	for i := range b {

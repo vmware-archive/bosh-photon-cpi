@@ -1,14 +1,13 @@
 package rest
 
 import (
-	"bytes"
+	"crypto/rand"
 	"fmt"
 	"io"
-	"mime/multipart"
 	"net/http"
-	"net/textproto"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type Request struct {
@@ -55,32 +54,56 @@ func MultipartUploadFile(client *http.Client, url, filePath string, params map[s
 	if err != nil {
 		return
 	}
+	defer file.Close()
 	return MultipartUpload(client, url, file, filepath.Base(filePath), params)
 }
 
 func MultipartUpload(client *http.Client, url string, reader io.Reader, filename string, params map[string]string) (res *http.Response, err error) {
-	buf := &bytes.Buffer{}
-	writer := multipart.NewWriter(buf)
-	if params != nil {
-		for key, val := range params {
-			writer.WriteField(key, val)
-		}
+	// The mime/multipart package does not support streaming multipart data from disk,
+	// at least not without complicated, problematic goroutines that simultaneously read/write into a buffer.
+	// A much easier approach is to just construct the multipart request by hand, using io.MultiPart to
+	// concatenate the parts of the request together into a single io.Reader.
+	boundary := randomBoundary()
+	parts := []io.Reader{}
+
+	// Create a part for each key, val pair in params
+	for k, v := range params {
+		parts = append(parts, createFieldPart(k, v, boundary))
 	}
-	header := textproto.MIMEHeader{}
-	header.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s";`, "file", filename))
-	header.Set("Content-Type", writer.FormDataContentType())
-	part, err := writer.CreatePart(header)
-	if err != nil {
-		return
-	}
-	_, err = io.Copy(part, reader)
-	if err != nil {
-		return
-	}
-	err = writer.Close()
-	if err != nil {
-		return
-	}
-	res, err = Do(client, &Request{"POST", url, writer.FormDataContentType(), buf})
+
+	start := fmt.Sprintf("\r\n--%s\r\n", boundary)
+	start += fmt.Sprintf("Content-Disposition: form-data; name=\"file\"; filename=\"%s\"\r\n", quoteEscaper.Replace(filename))
+	start += fmt.Sprintf("Content-Type: application/octet-stream\r\n\r\n")
+	end := fmt.Sprintf("\r\n--%s--", boundary)
+
+	// The request will consist of a reader to begin the request, a reader which points
+	// to the file data on disk, and a reader containing the closing boundary of the request.
+	parts = append(parts, strings.NewReader(start), reader, strings.NewReader(end))
+
+	contentType := fmt.Sprintf("multipart/form-data; boundary=%s", boundary)
+
+	res, err = Do(client, &Request{"POST", url, contentType, io.MultiReader(parts...)})
+
 	return
+}
+
+// From https://golang.org/src/mime/multipart/writer.go
+func randomBoundary() string {
+	var buf [30]byte
+	_, err := io.ReadFull(rand.Reader, buf[:])
+	if err != nil {
+		panic(err)
+	}
+	return fmt.Sprintf("%x", buf[:])
+}
+
+// From https://golang.org/src/mime/multipart/writer.go
+var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
+
+// Creates a reader that encapsulates a single multipart form part
+func createFieldPart(fieldname, value, boundary string) io.Reader {
+	str := fmt.Sprintf("\r\n--%s\r\n", boundary)
+	str += fmt.Sprintf("Content-Disposition: form-data; name=\"%s\"\r\n\r\n", quoteEscaper.Replace(fieldname))
+	str += value
+	return strings.NewReader(str)
 }

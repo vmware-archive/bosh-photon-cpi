@@ -10,7 +10,7 @@ func TestCreateGetAndDeleteTenants(t *testing.T) {
 	server.SetResponseJson(200, mockTask)
 	defer server.Close()
 
-	tenantSpec := &TenantCreateSpec{Name: RandomString(10)}
+	tenantSpec := &TenantCreateSpec{Name: randomString(10)}
 	task, err := client.Tenants.Create(tenantSpec)
 	if err != nil {
 		t.Error("Not expecting error from Create")
@@ -69,10 +69,10 @@ func TestCreateAndGetResTickets(t *testing.T) {
 	server.SetResponseJson(200, mockTask)
 	defer server.Close()
 
-	tenantSpec := &TenantCreateSpec{Name: RandomString(10)}
+	tenantSpec := &TenantCreateSpec{Name: randomString(10)}
 	tenantTask, _ := client.Tenants.Create(tenantSpec)
 	spec := &ResourceTicketCreateSpec{
-		Name:   RandomString(10),
+		Name:   randomString(10),
 		Limits: []QuotaLineItem{QuotaLineItem{Unit: "GB", Value: 16, Key: "vm.memory"}},
 	}
 
@@ -94,7 +94,7 @@ func TestCreateAndGetResTickets(t *testing.T) {
 
 	mockResList := ResourceList{[]ResourceTicket{ResourceTicket{TenantId: tenantTask.Entity.ID, Name: spec.Name, Limits: spec.Limits}}}
 	server.SetResponseJson(200, mockResList)
-	resList, err := client.Tenants.GetResourceTickets(tenantTask.Entity.ID, &spec.Name)
+	resList, err := client.Tenants.GetResourceTickets(tenantTask.Entity.ID, &ResourceTicketGetOptions{spec.Name})
 	if err != nil {
 		t.Error("Not expecting error from GetResourceTickets")
 	}
@@ -125,11 +125,11 @@ func TestCreateAndGetProjects(t *testing.T) {
 	server.SetResponseJson(200, mockTask)
 	defer server.Close()
 
-	tenantSpec := &TenantCreateSpec{Name: RandomString(10)}
+	tenantSpec := &TenantCreateSpec{Name: randomString(10)}
 	tenantTask, _ := client.Tenants.Create(tenantSpec)
 
 	resSpec := &ResourceTicketCreateSpec{
-		Name:   RandomString(10),
+		Name:   randomString(10),
 		Limits: []QuotaLineItem{QuotaLineItem{Unit: "GB", Value: 16, Key: "vm.memory"}},
 	}
 	_, _ = client.Tenants.CreateResourceTicket(tenantTask.Entity.ID, resSpec)
@@ -139,7 +139,7 @@ func TestCreateAndGetProjects(t *testing.T) {
 			resSpec.Name,
 			[]QuotaLineItem{QuotaLineItem{"GB", 2, "vm.memory"}},
 		},
-		RandomString(10),
+		randomString(10),
 	}
 
 	mockTask = createMockTask("CREATE_PROJECT", "COMPLETED")
@@ -161,7 +161,7 @@ func TestCreateAndGetProjects(t *testing.T) {
 
 	mockProjects := ProjectList{[]ProjectCompact{ProjectCompact{Name: projSpec.Name}}}
 	server.SetResponseJson(200, mockProjects)
-	projList, err := client.Tenants.GetProjects(tenantTask.Entity.ID, &projSpec.Name)
+	projList, err := client.Tenants.GetProjects(tenantTask.Entity.ID, &ProjectGetOptions{projSpec.Name})
 	if err != nil {
 		t.Error("Not expecting error from GetProjects")
 	}

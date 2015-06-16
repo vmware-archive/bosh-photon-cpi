@@ -4,31 +4,24 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/esxcloud/esxcloud-go-sdk/esxcloud/internal/rest"
-	"net/url"
 )
 
+// Contains functionality for tenants API.
 type TenantsAPI struct {
 	client *Client
 }
 
-type Tenant struct {
-	Projects        []BaseCompact `json:"projects"`
-	ResourceTickets []BaseCompact `json:"resourceTickets"`
-	Kind            string        `json:"kind"`
-	Name            string        `json:"name"`
-	ID              string        `json:"id"`
-	SelfLink        string        `json:"selfLink"`
-	Tags            []string      `json:"tags"`
+// Options for GetResourceTickets API.
+type ResourceTicketGetOptions struct {
+	Name string
 }
 
-type Tenants struct {
-	Items []Tenant `json:"items"`
+// Options for GetProjects API.
+type ProjectGetOptions struct {
+	Name string
 }
 
-type TenantCreateSpec struct {
-	Name string `json:"name"`
-}
-
+// Returns all tenants on an esxcloud instance.
 func (api *TenantsAPI) GetAll() (result *Tenants, err error) {
 	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/tenants")
 	if err != nil {
@@ -44,6 +37,7 @@ func (api *TenantsAPI) GetAll() (result *Tenants, err error) {
 	return
 }
 
+// Creates a tenant.
 func (api *TenantsAPI) Create(tenantSpec *TenantCreateSpec) (task *Task, err error) {
 	body, err := json.Marshal(tenantSpec)
 	if err != nil {
@@ -58,6 +52,7 @@ func (api *TenantsAPI) Create(tenantSpec *TenantCreateSpec) (task *Task, err err
 	return
 }
 
+// Deletes the tenant with specified ID. Any projects, VMs, disks, etc., owned by the tenant must be deleted first.
 func (api *TenantsAPI) Delete(id string) (task *Task, err error) {
 	res, err := rest.Delete(api.client.httpClient, api.client.Endpoint+"/v1/tenants/"+id)
 	if err != nil {
@@ -68,6 +63,7 @@ func (api *TenantsAPI) Delete(id string) (task *Task, err error) {
 	return
 }
 
+// Creates a resource ticket on the specified tenant.
 func (api *TenantsAPI) CreateResourceTicket(tenantId string, spec *ResourceTicketCreateSpec) (task *Task, err error) {
 	body, err := json.Marshal(spec)
 	if err != nil {
@@ -82,10 +78,12 @@ func (api *TenantsAPI) CreateResourceTicket(tenantId string, spec *ResourceTicke
 	return
 }
 
-func (api *TenantsAPI) GetResourceTickets(tenantId string, name *string) (tickets *ResourceList, err error) {
+// Gets resource tickets for tenant with the specified ID, using options to filter the results.
+// If options is nil, no filtering will occur.
+func (api *TenantsAPI) GetResourceTickets(tenantId string, options *ResourceTicketGetOptions) (tickets *ResourceList, err error) {
 	uri := api.client.Endpoint + "/v1/tenants/" + tenantId + "/resource-tickets"
-	if name != nil {
-		uri += "?name=" + url.QueryEscape(*name)
+	if options != nil {
+		uri += getQueryString(options)
 	}
 	res, err := rest.Get(api.client.httpClient, uri)
 	if err != nil {
@@ -101,6 +99,7 @@ func (api *TenantsAPI) GetResourceTickets(tenantId string, name *string) (ticket
 	return
 }
 
+// Creates a project on the specified tenant.
 func (api *TenantsAPI) CreateProject(tenantId string, spec *ProjectCreateSpec) (task *Task, err error) {
 	body, err := json.Marshal(spec)
 	if err != nil {
@@ -115,10 +114,12 @@ func (api *TenantsAPI) CreateProject(tenantId string, spec *ProjectCreateSpec) (
 	return
 }
 
-func (api *TenantsAPI) GetProjects(tenantId string, name *string) (result *ProjectList, err error) {
+// Gets the projects for tenant with the specified ID, using options to filter the results.
+// If options is nil, no filtering will occur.
+func (api *TenantsAPI) GetProjects(tenantId string, options *ProjectGetOptions) (result *ProjectList, err error) {
 	uri := api.client.Endpoint + "/v1/tenants/" + tenantId + "/projects"
-	if name != nil {
-		uri += "?name=" + url.QueryEscape(*name)
+	if options != nil {
+		uri += getQueryString(options)
 	}
 	res, err := rest.Get(api.client.httpClient, uri)
 	if err != nil {

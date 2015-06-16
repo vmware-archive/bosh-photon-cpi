@@ -6,35 +6,18 @@ import (
 	"github.com/esxcloud/esxcloud-go-sdk/esxcloud/internal/rest"
 )
 
+// Contains functionality for flavors API.
 type FlavorsAPI struct {
 	client *Client
 }
 
 // Options used for find/get APIs
-type FlavorOptions struct {
+type FlavorGetOptions struct {
 	Name string
 	Kind string
 }
 
-type FlavorCreateSpec struct {
-	Cost []QuotaLineItem `json:"cost"`
-	Kind string          `json:"kind"`
-	Name string          `json:"name"`
-}
-
-type Flavor struct {
-	Cost     []QuotaLineItem `json:"cost"`
-	Kind     string          `json:"kind"`
-	Name     string          `json:"name"`
-	ID       string          `json:"id"`
-	Tags     []string        `json:"tags"`
-	SelfLink string          `json:"selfLink"`
-}
-
-type FlavorList struct {
-	Items []Flavor `json:"items"`
-}
-
+// Creates a flavor.
 func (api *FlavorsAPI) Create(spec *FlavorCreateSpec) (task *Task, err error) {
 	body, err := json.Marshal(spec)
 	if err != nil {
@@ -49,8 +32,9 @@ func (api *FlavorsAPI) Create(spec *FlavorCreateSpec) (task *Task, err error) {
 	return
 }
 
-func (api *FlavorsAPI) Get(id string) (flavor *Flavor, err error) {
-	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/flavors/"+id)
+// Gets details of flavor with specified ID.
+func (api *FlavorsAPI) Get(flavorID string) (flavor *Flavor, err error) {
+	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/flavors/"+flavorID)
 	if err != nil {
 		return
 	}
@@ -65,7 +49,7 @@ func (api *FlavorsAPI) Get(id string) (flavor *Flavor, err error) {
 }
 
 // Gets flavors using options to filter results. Returns all flavors if options is nil.
-func (api *FlavorsAPI) Find(options *FlavorOptions) (flavors *FlavorList, err error) {
+func (api *FlavorsAPI) GetAll(options *FlavorGetOptions) (flavors *FlavorList, err error) {
 	uri := api.client.Endpoint + "/v1/flavors"
 	if options != nil {
 		uri += getQueryString(options)
@@ -84,8 +68,9 @@ func (api *FlavorsAPI) Find(options *FlavorOptions) (flavors *FlavorList, err er
 	return
 }
 
-func (api *FlavorsAPI) Delete(id string) (task *Task, err error) {
-	res, err := rest.Delete(api.client.httpClient, api.client.Endpoint+"/v1/flavors/"+id)
+// Deletes flavor with specified ID.
+func (api *FlavorsAPI) Delete(flavorID string) (task *Task, err error) {
+	res, err := rest.Delete(api.client.httpClient, api.client.Endpoint+"/v1/flavors/"+flavorID)
 	if err != nil {
 		return
 	}

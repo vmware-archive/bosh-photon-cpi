@@ -5,10 +5,12 @@ import (
 	"time"
 )
 
+// Contains functionality for tasks API.
 type TasksAPI struct {
 	client *Client
 }
 
+// Gets a task by ID.
 func (api *TasksAPI) Get(id string) (task *Task, err error) {
 	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/tasks/"+id)
 	if err != nil {
