@@ -173,8 +173,9 @@ func AttachDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 	if !ok {
 		return nil, errors.New("Unexpected type found in VM metadata")
 	}
-	// TODO: use real ID from agent
-	diskMap[diskCID] = "2"
+	// Agent expects a mapping of disk_cid to the ID that gets used by the agent
+	// to resolve the path to the device. In our case, it is the same ID as disk_cid.
+	diskMap[diskCID] = diskCID
 
 	err = updateAgentEnv(ctx, vmCID, env)
 	if err != nil {

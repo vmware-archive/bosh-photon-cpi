@@ -64,10 +64,21 @@ var _ = Describe("VMs", func() {
 
 			detachTask := &ec.Task{Operation: "DETACH_ISO", State: "ERROR", ID: "fake-detach-id"}
 
+			vm := &ec.VM{
+				ID: createTask.Entity.ID,
+				AttachedDisks: []ec.AttachedDisk{
+					ec.AttachedDisk{Name: "bosh-ephemeral-disk", ID: "fake-eph-disk-id"},
+				},
+			}
+
 			RegisterResponder(
 				"POST",
 				server.URL+"/v1/projects/"+projID+"/vms",
 				CreateResponder(200, ToJson(createTask)))
+			RegisterResponder(
+				"GET",
+				server.URL+"/v1/vms/"+createTask.Entity.ID,
+				CreateResponder(200, ToJson(vm)))
 			RegisterResponder(
 				"GET",
 				server.URL+"/v1/tasks/"+createTask.ID,

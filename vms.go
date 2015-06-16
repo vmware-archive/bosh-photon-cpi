@@ -45,6 +45,7 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 		"CreateVM with agent_id: '%v', stemcell_cid: '%v', cloud_properties: '%v', networks: '%v', env: '%v'",
 		agentID, stemcellCID, cloudProps, networks, env)
 
+	ephDiskName := "bosh-ephemeral-disk"
 	spec := &ec.VmCreateSpec{
 		Name:          "bosh-vm",
 		Flavor:        vmFlavor,
@@ -62,7 +63,7 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 				CapacityGB: 20,
 				Flavor:     diskFlavor,
 				Kind:       "ephemeral-disk",
-				Name:       "bosh-ephemeral-disk",
+				Name:       ephDiskName,
 				State:      "STARTED",
 				BootDisk:   false,
 			},
@@ -79,9 +80,44 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 		return
 	}
 
+	// Get disk details of VM
+	ctx.Logger.Infof("Getting details of VM: %s", vmTask.Entity.ID)
+	vm, err := ctx.Client.VMs.Get(vmTask.Entity.ID)
+	if err != nil {
+		return
+	}
+	diskID := ""
+	for _, disk := range vm.AttachedDisks {
+		if disk.Name == ephDiskName {
+			diskID = disk.ID
+			break
+		}
+	}
+	if diskID == "" {
+		err = cpi.NewBoshError(
+			cpi.CloudError, false, "Could not find ID for ephemeral disk of new VM %s", vm.ID)
+		return
+	}
+
+	// Create agent config
+	agentEnv := &cpi.AgentEnv{
+		AgentID:  agentID,
+		VM:       cpi.VMSpec{Name: vm.Name, ID: vm.ID},
+		Networks: networks,
+		Env:      env,
+		Mbus:     ctx.Config.Agent.Mbus,
+		NTP:      ctx.Config.Agent.NTP,
+		Disks: map[string]interface{}{
+			"ephemeral": diskID,
+		},
+		Blobstore: cpi.BlobstoreSpec{
+			Provider: ctx.Config.Agent.Blobstore.Provider,
+			Options:  ctx.Config.Agent.Blobstore.Options,
+		},
+	}
+
 	// Create and attach agent env ISO file
-	envJson := createAgentEnv(ctx, agentID, vmTask.Entity.ID, spec.Name, networks, env)
-	err = updateAgentEnv(ctx, vmTask.Entity.ID, envJson)
+	err = updateAgentEnv(ctx, vmTask.Entity.ID, agentEnv)
 	if err != nil {
 		return
 	}

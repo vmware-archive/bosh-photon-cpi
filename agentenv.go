@@ -11,23 +11,6 @@ import (
 	p "path"
 )
 
-func createAgentEnv(ctx *cpi.Context, agentID, vmID, vmName string, networks, env map[string]interface{}) (res *cpi.AgentEnv) {
-	res = &cpi.AgentEnv{
-		AgentID:  agentID,
-		VM:       cpi.VMSpec{Name: vmName, ID: vmID},
-		Networks: networks,
-		Env:      env,
-		Mbus:     ctx.Config.Agent.Mbus,
-		NTP:      ctx.Config.Agent.NTP,
-		Disks:    map[string]interface{}{"ephemeral": "1"},
-		Blobstore: cpi.BlobstoreSpec{
-			Provider: ctx.Config.Agent.Blobstore.Provider,
-			Options:  ctx.Config.Agent.Blobstore.Options,
-		},
-	}
-	return
-}
-
 func getAgentEnvMetadata(vmID string) (res *cpi.AgentEnv, err error) {
 	// TODO: replace temp file with VM metadata API
 	file := p.Join(os.TempDir(), vmID)

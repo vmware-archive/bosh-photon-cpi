@@ -11,10 +11,9 @@ import (
 
 var _ = Describe("AgentEnv", func() {
 	var (
-		ctx      *cpi.Context
-		networks map[string]interface{}
-		env      map[string]interface{}
-		runner   cmd.Runner
+		ctx    *cpi.Context
+		env    *cpi.AgentEnv
+		runner cmd.Runner
 	)
 
 	BeforeEach(func() {
@@ -26,14 +25,12 @@ var _ = Describe("AgentEnv", func() {
 			Runner: runner,
 			Logger: logger.New(),
 		}
-		env = map[string]interface{}{"prop1": "value1", "prop2": 123}
-		networks = map[string]interface{}{"default": map[string]interface{}{}}
+		env = &cpi.AgentEnv{AgentID: "agent-id", VM: cpi.VMSpec{Name: "vm-name", ID: "vm-id"}}
 	})
 
 	// This test requires genisoimage to truly verify ISO creation. On Linux, a real
 	// cmd.Runner is used and commands are really executed. On other platforms, it's mocked.
 	It("Successfully creates an ISO", func() {
-		env := createAgentEnv(ctx, "agent-id", "vm-id", "vm-name", networks, env)
 		iso, err := createEnvISO(env, runner)
 		defer os.Remove(iso)
 
@@ -50,7 +47,6 @@ var _ = Describe("AgentEnv", func() {
 	Describe("Metadata", func() {
 		It("successfully puts and gets agent env data", func() {
 			vmID := "fake-vm-id"
-			env := createAgentEnv(ctx, "agent-id", vmID, "vm-name", map[string]interface{}{}, map[string]interface{}{})
 			err := putAgentEnvMetadata(vmID, env)
 			Expect(err).ToNot(HaveOccurred())
 			env2, err := getAgentEnvMetadata(vmID)
