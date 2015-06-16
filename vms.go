@@ -59,7 +59,7 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 				BootDisk:   true,
 			},
 			ec.AttachedDisk{
-				CapacityGB: 4, // Ignored
+				CapacityGB: 20,
 				Flavor:     diskFlavor,
 				Kind:       "ephemeral-disk",
 				Name:       "bosh-ephemeral-disk",
