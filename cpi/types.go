@@ -26,9 +26,10 @@ type AgentConfig struct {
 }
 
 type ESXCloudConfig struct {
-	Target    string `json:"target"`
-	ProjectID string `json:"project"`
-	TenantID  string `json:"tenant"`
+	Target            string `json:"target"`
+	ProjectID         string `json:"project"`
+	TenantID          string `json:"tenant"`
+	IgnoreCertificate bool   `json:"ignore_cert"`
 }
 
 type ActionFn func(*Context, []interface{}) (interface{}, error)

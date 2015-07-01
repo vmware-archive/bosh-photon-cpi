@@ -74,8 +74,9 @@ func loadConfig(filePath string) (ctx *cpi.Context, err error) {
 	if err != nil {
 		return
 	}
+	clientConfig := &esxcloud.ClientOptions{IgnoreCertificate: config.ESXCloud.IgnoreCertificate}
 	ctx = &cpi.Context{
-		Client: esxcloud.NewClient(config.ESXCloud.Target, nil),
+		Client: esxcloud.NewClient(config.ESXCloud.Target, clientConfig),
 		Config: config,
 		Runner: cmd.NewRunner(),
 		Logger: logger.New(),
