@@ -12,7 +12,7 @@ func TestCreateGetDeleteVM(t *testing.T) {
 	server.SetResponseJson(200, mockTask)
 	defer server.Close()
 
-	tenantSpec := &TenantCreateSpec{Name: randomString(10)}
+	tenantSpec := &TenantCreateSpec{Name: randomString(10, "go-sdk-tenant-")}
 	tenantTask, _ := client.Tenants.Create(tenantSpec)
 
 	// Create resource ticket
@@ -31,7 +31,7 @@ func TestCreateGetDeleteVM(t *testing.T) {
 				QuotaLineItem{"COUNT", 100, "vm"},
 			},
 		},
-		randomString(10),
+		randomString(10, "go-sdk-project-"),
 	}
 	projTask, _ := client.Tenants.CreateProject(tenantTask.Entity.ID, projSpec)
 
@@ -76,12 +76,13 @@ func TestCreateGetDeleteVM(t *testing.T) {
 				BootDisk:   true,
 			},
 		},
-		Name: randomString(10),
+		Name: randomString(10, "go-sdk-vm-"),
 	}
 
 	vmCreateTask, err := client.Projects.CreateVM(projTask.Entity.ID, vmSpec)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if vmCreateTask == nil {
 		t.Error("Not expecting task to be nil")
@@ -99,24 +100,28 @@ func TestCreateGetDeleteVM(t *testing.T) {
 	vmCreateTask, err = client.Tasks.Wait(vmCreateTask.ID)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if vmCreateTask.State != "COMPLETED" {
 		t.Error("Expected task status to be COMPLETED")
 	}
 
 	// Set VM metadata
-	metadata := &VmMetadata{Metadata: map[string]interface{}{"key1": "value1"}}
+	data := map[string]string{"key1": "value1"}
+	metadata := &VmMetadata{Metadata: data}
 	_, err = client.VMs.SetMetadata(vmCreateTask.Entity.ID, metadata)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 
 	// Get VM
-	mockVm := &VM{Name: vmSpec.Name, Metadata: metadata.Metadata}
+	mockVm := &VM{Name: vmSpec.Name, Metadata: data}
 	server.SetResponseJson(200, mockVm)
 	vm, err := client.VMs.Get(vmCreateTask.Entity.ID)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if vm == nil {
 		t.Error("Not expecting VM to be nil")
@@ -124,8 +129,8 @@ func TestCreateGetDeleteVM(t *testing.T) {
 	if vm.Name != vmSpec.Name {
 		t.Error("Did not see expected VM from Get VM")
 	}
-	if !reflect.DeepEqual(metadata.Metadata, vm.Metadata) {
-		t.Error("VM metadata did not match expected")
+	if !reflect.DeepEqual(vm.Metadata, data) {
+		t.Error("Metadata did not match metadata from VM")
 	}
 
 	// Cleanup VM
@@ -134,6 +139,7 @@ func TestCreateGetDeleteVM(t *testing.T) {
 	vmDeleteTask, err := client.VMs.Delete(vmCreateTask.Entity.ID, true)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if vmDeleteTask.Operation != "DELETE_VM" {
 		t.Error("Expected task operation to be DELETE_VM")
@@ -147,6 +153,7 @@ func TestCreateGetDeleteVM(t *testing.T) {
 	vmDeleteTask, err = client.Tasks.Wait(vmDeleteTask.ID)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if vmDeleteTask.Operation != "DELETE_VM" {
 		t.Error("Expected task operation to be DELETE_VM")
@@ -185,7 +192,7 @@ func TestAttachDetachDisk(t *testing.T) {
 	server.SetResponseJson(200, mockTask)
 	defer server.Close()
 
-	tenantSpec := &TenantCreateSpec{Name: randomString(10)}
+	tenantSpec := &TenantCreateSpec{Name: randomString(10, "go-sdk-tenant-")}
 	tenantTask, _ := client.Tenants.Create(tenantSpec)
 
 	// Create resource ticket
@@ -204,7 +211,7 @@ func TestAttachDetachDisk(t *testing.T) {
 				QuotaLineItem{"COUNT", 100, "vm"},
 			},
 		},
-		randomString(10),
+		randomString(10, "go-sdk-project-"),
 	}
 	projTask, _ := client.Tenants.CreateProject(tenantTask.Entity.ID, projSpec)
 
@@ -267,7 +274,7 @@ func TestAttachDetachDisk(t *testing.T) {
 				BootDisk:   true,
 			},
 		},
-		Name: randomString(10),
+		Name: randomString(10, "go-sdk-vm-"),
 	}
 	vmCreateTask, _ := client.Projects.CreateVM(projTask.Entity.ID, vmSpec)
 
@@ -281,6 +288,7 @@ func TestAttachDetachDisk(t *testing.T) {
 	attachTask, err := client.VMs.AttachDisk(vmCreateTask.Entity.ID, &VmDiskOperation{DiskID: diskTask.Entity.ID})
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if attachTask == nil {
 		t.Error("Not expecting task to be nil")
@@ -297,6 +305,7 @@ func TestAttachDetachDisk(t *testing.T) {
 	attachTask, err = client.Tasks.Wait(attachTask.ID)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if attachTask == nil {
 		t.Error("Not expecting task to be nil")
@@ -313,6 +322,7 @@ func TestAttachDetachDisk(t *testing.T) {
 	detachTask, err := client.VMs.DetachDisk(vmCreateTask.Entity.ID, &VmDiskOperation{DiskID: diskTask.Entity.ID})
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if detachTask == nil {
 		t.Error("Not expecting task to be nil")
@@ -329,6 +339,7 @@ func TestAttachDetachDisk(t *testing.T) {
 	detachTask, err = client.Tasks.Wait(detachTask.ID)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if detachTask == nil {
 		t.Error("Not expecting task to be nil")
@@ -396,7 +407,7 @@ func TestAttachDetachISO(t *testing.T) {
 	server.SetResponseJson(200, mockTask)
 	defer server.Close()
 
-	tenantSpec := &TenantCreateSpec{Name: randomString(10)}
+	tenantSpec := &TenantCreateSpec{Name: randomString(10, "go-sdk-tenant-")}
 	tenantTask, _ := client.Tenants.Create(tenantSpec)
 
 	// Create resource ticket
@@ -415,7 +426,7 @@ func TestAttachDetachISO(t *testing.T) {
 				QuotaLineItem{"COUNT", 100, "vm"},
 			},
 		},
-		randomString(10),
+		randomString(10, "go-sdk-project-"),
 	}
 	projTask, _ := client.Tenants.CreateProject(tenantTask.Entity.ID, projSpec)
 
@@ -468,7 +479,7 @@ func TestAttachDetachISO(t *testing.T) {
 				BootDisk:   true,
 			},
 		},
-		Name: randomString(10),
+		Name: randomString(10, "go-sdk-vm-"),
 	}
 	vmCreateTask, err := client.Projects.CreateVM(projTask.Entity.ID, vmSpec)
 
@@ -482,6 +493,7 @@ func TestAttachDetachISO(t *testing.T) {
 	attachIsoTask, err = client.Tasks.Wait(attachIsoTask.ID)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if attachIsoTask == nil {
 		t.Error("Not expecting task to be nil")
@@ -498,6 +510,7 @@ func TestAttachDetachISO(t *testing.T) {
 	detachIsoTask, err := client.VMs.DetachISO(vmCreateTask.Entity.ID)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if detachIsoTask == nil {
 		t.Error("Not expecting task to be nil")
@@ -514,6 +527,7 @@ func TestAttachDetachISO(t *testing.T) {
 	detachIsoTask, err = client.Tasks.Wait(detachIsoTask.ID)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if detachIsoTask == nil {
 		t.Error("Not expecting task to be nil")
@@ -569,7 +583,7 @@ func TestVmPowerOnAndOff(t *testing.T) {
 	server.SetResponseJson(200, createMockTask("CREATE_TENANT", "COMPLETED"))
 	defer server.Close()
 
-	tenantSpec := &TenantCreateSpec{Name: randomString(10)}
+	tenantSpec := &TenantCreateSpec{Name: randomString(10, "go-sdk-tenant-")}
 	tenantTask, _ := client.Tenants.Create(tenantSpec)
 
 	// Create resource ticket
@@ -588,7 +602,7 @@ func TestVmPowerOnAndOff(t *testing.T) {
 				QuotaLineItem{"COUNT", 100, "vm"},
 			},
 		},
-		randomString(10),
+		randomString(10, "go-sdk-project-"),
 	}
 	projTask, _ := client.Tenants.CreateProject(tenantTask.Entity.ID, projSpec)
 
@@ -631,11 +645,12 @@ func TestVmPowerOnAndOff(t *testing.T) {
 				BootDisk:   true,
 			},
 		},
-		Name: randomString(10),
+		Name: randomString(10, "go-sdk-vm-"),
 	}
 	vmCreateTask, err := client.Projects.CreateVM(projTask.Entity.ID, vmSpec)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if vmCreateTask == nil {
 		t.Error("Not expecting task to be nil")
@@ -652,6 +667,7 @@ func TestVmPowerOnAndOff(t *testing.T) {
 	vmCreateTask, err = client.Tasks.Wait(vmCreateTask.ID)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if vmCreateTask.State != "COMPLETED" {
 		t.Error("Expected task status to be COMPLETED")
@@ -662,6 +678,7 @@ func TestVmPowerOnAndOff(t *testing.T) {
 	powerOnTask, err := client.VMs.Operation(vmCreateTask.Entity.ID, &VmOperation{Operation: "START_VM"})
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if powerOnTask == nil {
 		t.Error("Not expecting task to be nil")
@@ -678,6 +695,7 @@ func TestVmPowerOnAndOff(t *testing.T) {
 	powerOnTask, err = client.Tasks.Wait(powerOnTask.ID)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if powerOnTask == nil {
 		t.Error("Not expecting task to be nil")
@@ -694,6 +712,7 @@ func TestVmPowerOnAndOff(t *testing.T) {
 	powerOffTask, err := client.VMs.Operation(vmCreateTask.Entity.ID, &VmOperation{Operation: "STOP_VM"})
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if powerOffTask == nil {
 		t.Error("Not expecting task to be nil")
@@ -710,6 +729,7 @@ func TestVmPowerOnAndOff(t *testing.T) {
 	powerOffTask, err = client.Tasks.Wait(powerOffTask.ID)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if powerOffTask == nil {
 		t.Error("Not expecting task to be nil")
@@ -739,6 +759,7 @@ func TestVmPowerOnAndOff(t *testing.T) {
 	vmDeleteTask, err = client.Tasks.Wait(vmDeleteTask.ID)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if vmDeleteTask.Operation != "DELETE_VM" {
 		t.Error("Expected task operation to be DELETE_VM")

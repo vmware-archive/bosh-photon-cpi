@@ -12,7 +12,7 @@ type TasksAPI struct {
 
 // Gets a task by ID.
 func (api *TasksAPI) Get(id string) (task *Task, err error) {
-	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/tasks/"+id)
+	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/tasks/"+id, api.client.options.Token)
 	if err != nil {
 		return
 	}

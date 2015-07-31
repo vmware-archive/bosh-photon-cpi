@@ -12,7 +12,7 @@ type StatusAPI struct {
 
 // Returns the status of an esxcloud endpoint.
 func (api *StatusAPI) Get() (status *Status, err error) {
-	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/status")
+	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/status", api.client.options.Token)
 	if err != nil {
 		return
 	}

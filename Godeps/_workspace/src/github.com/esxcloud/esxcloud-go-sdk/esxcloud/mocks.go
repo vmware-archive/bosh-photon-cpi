@@ -1,13 +1,14 @@
 package esxcloud
 
 import (
+	"crypto/tls"
 	"fmt"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"os"
 	"time"
+	"bytes"
 )
 
 type testServer struct {
@@ -51,13 +52,17 @@ func testSetup() (server *testServer, client *Client) {
 	if os.Getenv("TEST_ENDPOINT") != "" {
 		server = &testServer{}
 		uri = os.Getenv("TEST_ENDPOINT")
+		// set token value if ENABLE_AUTH==TRUE
+		// TODO
 	} else {
 		server = newTestServer()
 		uri = server.HttpServer.URL
 	}
-	transport := &http.Transport{Proxy: func(req *http.Request) (*url.URL, error) {
-		return url.Parse(uri)
-	}}
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
 
 	httpClient := &http.Client{Transport: transport}
 	client = NewTestClient(uri, nil, httpClient)
@@ -74,13 +79,21 @@ func createMockTask(operation, state string, steps ...Step) *Task {
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
-func randomString(n int) string {
+func randomString(n int, prefixes ...string) string {
 	rand.Seed(time.Now().UTC().UnixNano())
 	b := make([]rune, n)
 	for i := range b {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
-	return string(b)
+
+	var buffer bytes.Buffer
+
+	for i := 0; i < len(prefixes); i++ {
+		buffer.WriteString(prefixes[i])
+	}
+
+	buffer.WriteString(string(b))
+	return buffer.String()
 }
 
 func isRealAgent() bool {

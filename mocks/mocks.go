@@ -47,3 +47,12 @@ func GetResponse(data []byte) (res cpi.Response, err error) {
 	err = json.Unmarshal(data, &res)
 	return
 }
+
+func GetEnvMetadata(env *cpi.AgentEnv) (res string) {
+	json, err := json.Marshal(env)
+	if err != nil {
+		panic("Unable to serialize agent env JSON")
+	}
+	res = string(json[:])
+	return
+}

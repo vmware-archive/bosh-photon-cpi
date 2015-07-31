@@ -392,10 +392,10 @@ var _ = Describe("Disk", func() {
 			isoTask := &ec.Task{Operation: "ATTACH_ISO", State: "QUEUED", ID: "fake-iso-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
 			isoCompletedTask := &ec.Task{Operation: "ATTACH_ISO", State: "COMPLETED", ID: "fake-iso-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
 
-			metadata := &cpi.AgentEnv{AgentID: "agent-id", VM: cpi.VMSpec{ID: "fake-vm-id", Name: "fake-vm"}}
+			env := &cpi.AgentEnv{AgentID: "agent-id", VM: cpi.VMSpec{ID: "fake-vm-id", Name: "fake-vm"}}
 			vm := &ec.VM{
 				ID:       "fake-vm-id",
-				Metadata: &ec.VmMetadata{metadata},
+				Metadata: map[string]string{"bosh-cpi": GetEnvMetadata(env)},
 			}
 			metadataTask := &ec.Task{State: "COMPLETED"}
 
@@ -481,10 +481,10 @@ var _ = Describe("Disk", func() {
 			isoTask := &ec.Task{Operation: "ATTACH_ISO", State: "QUEUED", ID: "fake-iso-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
 			isoCompletedTask := &ec.Task{Operation: "ATTACH_ISO", State: "COMPLETED", ID: "fake-iso-task-id", Entity: ec.Entity{ID: "fake-vm-id"}}
 
-			metadata := &cpi.AgentEnv{AgentID: "agent-id", VM: cpi.VMSpec{ID: "fake-vm-id", Name: "fake-vm"}}
+			env := &cpi.AgentEnv{AgentID: "agent-id", VM: cpi.VMSpec{ID: "fake-vm-id", Name: "fake-vm"}}
 			vm := &ec.VM{
 				ID:       "fake-vm-id",
-				Metadata: &ec.VmMetadata{metadata},
+				Metadata: map[string]string{"bosh-cpi": GetEnvMetadata(env)},
 			}
 			metadataTask := &ec.Task{State: "COMPLETED"}
 

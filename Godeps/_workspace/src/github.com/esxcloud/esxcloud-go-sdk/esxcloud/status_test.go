@@ -14,6 +14,7 @@ func TestGetStatus200(t *testing.T) {
 	status, err := client.Status.Get()
 	if err != nil {
 		t.Error("Not expecting error from GetStatus")
+		t.Log(err)
 	}
 
 	if status.Status != expectedStruct.Status {

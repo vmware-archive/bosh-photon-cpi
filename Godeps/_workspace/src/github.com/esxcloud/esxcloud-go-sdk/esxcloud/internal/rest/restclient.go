@@ -15,24 +15,25 @@ type Request struct {
 	URL         string
 	ContentType string
 	Body        io.Reader
+	Token       string
 }
 
 const appJson string = "application/json"
 
-func Get(client *http.Client, url string) (res *http.Response, err error) {
-	req := Request{"GET", url, "", nil}
+func Get(client *http.Client, url string, token string) (res *http.Response, err error) {
+	req := Request{"GET", url, "", nil, token}
 	res, err = Do(client, &req)
 	return
 }
 
-func Post(client *http.Client, url string, body io.Reader) (res *http.Response, err error) {
-	req := Request{"POST", url, appJson, body}
+func Post(client *http.Client, url string, body io.Reader, token string) (res *http.Response, err error) {
+	req := Request{"POST", url, appJson, body, token}
 	res, err = Do(client, &req)
 	return
 }
 
-func Delete(client *http.Client, url string) (res *http.Response, err error) {
-	req := Request{"DELETE", url, "", nil}
+func Delete(client *http.Client, url string, token string) (res *http.Response, err error) {
+	req := Request{"DELETE", url, "", nil, token}
 	res, err = Do(client, &req)
 	return
 }
@@ -45,20 +46,23 @@ func Do(client *http.Client, req *Request) (res *http.Response, err error) {
 	if req.ContentType != "" {
 		r.Header.Add("Content-Type", req.ContentType)
 	}
+	if req.Token != ""{
+		r.Header.Add("Authorization", "Bearer " + req.Token)
+	}
 	res, err = client.Do(r)
 	return
 }
 
-func MultipartUploadFile(client *http.Client, url, filePath string, params map[string]string) (res *http.Response, err error) {
+func MultipartUploadFile(client *http.Client, url, filePath string, params map[string]string, token string) (res *http.Response, err error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return
 	}
 	defer file.Close()
-	return MultipartUpload(client, url, file, filepath.Base(filePath), params)
+	return MultipartUpload(client, url, file, filepath.Base(filePath), params, token)
 }
 
-func MultipartUpload(client *http.Client, url string, reader io.Reader, filename string, params map[string]string) (res *http.Response, err error) {
+func MultipartUpload(client *http.Client, url string, reader io.Reader, filename string, params map[string]string, token string) (res *http.Response, err error) {
 	// The mime/multipart package does not support streaming multipart data from disk,
 	// at least not without complicated, problematic goroutines that simultaneously read/write into a buffer.
 	// A much easier approach is to just construct the multipart request by hand, using io.MultiPart to
@@ -82,7 +86,7 @@ func MultipartUpload(client *http.Client, url string, reader io.Reader, filename
 
 	contentType := fmt.Sprintf("multipart/form-data; boundary=%s", boundary)
 
-	res, err = Do(client, &Request{"POST", url, contentType, io.MultiReader(parts...)})
+	res, err = Do(client, &Request{"POST", url, contentType, io.MultiReader(parts...), token})
 
 	return
 }

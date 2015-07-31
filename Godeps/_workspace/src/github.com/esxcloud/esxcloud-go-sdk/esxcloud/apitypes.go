@@ -90,6 +90,17 @@ type Task struct {
 	Steps       []Step `json:"steps,omitempty"`
 }
 
+// Represents multiple tasks returned by the API.
+type TaskList struct {
+	Items []Task `json:"items"`
+}
+
+// Options for GetTasks API.
+type TaskGetOptions struct {
+	State string
+	Kind  string
+}
+
 type BaseCompact struct {
 	Name string `json:"name"`
 	ID   string `json:"id"`
@@ -167,13 +178,21 @@ type ProjectTicket struct {
 
 // Represents an image.
 type Image struct {
-	Size     int64    `json:"size"`
-	Kind     string   `json:"kind"`
-	Name     string   `json:"name"`
-	State    string   `json:"state"`
-	ID       string   `json:"id"`
-	Tags     []string `json:"tags"`
-	SelfLink string   `json:"selfLink"`
+	Size            int64          `json:"size"`
+	Kind            string         `json:"kind"`
+	Name            string         `json:"name"`
+	State           string         `json:"state"`
+	ID              string         `json:"id"`
+	Tags            []string       `json:"tags"`
+	SelfLink        string         `json:"selfLink"`
+	Settings        []ImageSetting `json:"settings"`
+	ReplicationType string         `json:"replicationType"`
+}
+
+// Represents an image setting
+type ImageSetting struct {
+	Name         string `json:"name"`
+	DefaultValue string `json:"defaultValue"`
 }
 
 // Creation spec for images.
@@ -268,7 +287,7 @@ type VmOperation struct {
 
 // Represents metadata that can be set on a VM.
 type VmMetadata struct {
-	Metadata interface{} `json:"metadata"`
+	Metadata map[string]string `json:"metadata"`
 }
 
 // Represents a single attached disk.
@@ -284,20 +303,25 @@ type AttachedDisk struct {
 
 // Represents a single VM.
 type VM struct {
-	SourceImageID string          `json:"sourceImageId,omitempty"`
-	Cost          []QuotaLineItem `json:"cost"`
-	Kind          string          `json:"kind"`
-	AttachedDisks []AttachedDisk  `json:"attachedDisks"`
-	Datastore     string          `json:"datastore,omitempty"`
-	AttachedISOs  []ISO           `json:"attachedIsos,omitempty"`
-	Tags          []string        `json:"tags,omitempty"`
-	Metadata      interface{}     `json:"metadata,omitempty"`
-	SelfLink      string          `json:"selfLink,omitempty"`
-	Flavor        string          `json:"flavor"`
-	Host          string          `json:"host,omitempty"`
-	Name          string          `json:"name"`
-	State         string          `json:"string"`
-	ID            string          `json:"id"`
+	SourceImageID string            `json:"sourceImageId,omitempty"`
+	Cost          []QuotaLineItem   `json:"cost"`
+	Kind          string            `json:"kind"`
+	AttachedDisks []AttachedDisk    `json:"attachedDisks"`
+	Datastore     string            `json:"datastore,omitempty"`
+	AttachedISOs  []ISO             `json:"attachedIsos,omitempty"`
+	Tags          []string          `json:"tags,omitempty"`
+	Metadata      map[string]string `json:"metadata,omitempty"`
+	SelfLink      string            `json:"selfLink,omitempty"`
+	Flavor        string            `json:"flavor"`
+	Host          string            `json:"host,omitempty"`
+	Name          string            `json:"name"`
+	State         string            `json:"string"`
+	ID            string            `json:"id"`
+}
+
+// Represents multiple VMs returned by the API.
+type VMs struct {
+	Items []VM `json:"items"`
 }
 
 // Represents an ISO.
@@ -334,4 +358,67 @@ type Flavor struct {
 // Represents multiple flavors returned by the API.
 type FlavorList struct {
 	Items []Flavor `json:"items"`
+}
+
+// Creation spec for hosts.
+type HostCreateSpec struct {
+	Username string      `json:"username"`
+	Password string      `json:"password"`
+	Metadata interface{} `json:"metadata,omitempty"`
+	Address  string      `json:"address"`
+	Tags     []string    `json:"usageTags"`
+}
+
+// Represents a host
+type Host struct {
+	Username string      `json:"username"`
+	Password string      `json:"password"`
+	Address  string      `json:"address"`
+	Kind     string      `json:"kind"`
+	ID       string      `json:"id"`
+	Tags     []string    `json:"usageTags"`
+	Metadata interface{} `json:"metadata,omitempty"`
+	SelfLink string      `json:"selfLink"`
+	State    string      `json:"state"`
+}
+
+// Represents multiple hosts returned by the API.
+type Hosts struct {
+	Items []Host `json:"items"`
+}
+
+// Creation spec for deployments.
+type DeploymentCreateSpec struct {
+	NTPEndpoint             interface{} `json:"ntpEndpoint"`
+	UseImageDatastoreForVMs bool        `json:"useImageDatastoreForVMs"`
+	SyslogEndpoint          interface{} `json:"syslogEndpoint"`
+	ImageDatastore          string      `json:"imageDatastore"`
+	Auth                    *AuthInfo   `json:"auth"`
+}
+
+// Represents a deployment
+type Deployment struct {
+	NTPEndpoint             string    `json:"ntpEndpoint,omitempty"`
+	UseImageDatastoreForVMs bool      `json:"useImageDatastoreForVMs,omitempty"`
+	Auth                    *AuthInfo `json:"auth"`
+	Kind                    string    `json:"kind"`
+	SyslogEndpoint          string    `json:"syslogEndpoint,omitempty"`
+	State                   string    `json:"state"`
+	ID                      string    `json:"id"`
+	ImageDatastore          string    `json:"imageDatastore"`
+	SelfLink                string    `json:"selfLink"`
+}
+
+// Represents multiple deployments returned by the API.
+type Deployments struct {
+	Items []Deployment `json:"items"`
+}
+
+// Represents authentication information
+type AuthInfo struct {
+	Password string `json:"password,omitempty"`
+	Endpoint string `json:"endpoint,omitempty"`
+	Tenant   string `json:"tenant,omitempty"`
+	Enabled  bool   `json:"enabled"`
+	Username string `json:"username,omitempty"`
 }

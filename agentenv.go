@@ -12,25 +12,29 @@ import (
 	p "path"
 )
 
+const metadataKey = "bosh-cpi"
+
 func getAgentEnvMetadata(ctx *cpi.Context, vmID string) (res *cpi.AgentEnv, err error) {
 	vm, err := ctx.Client.VMs.Get(vmID)
 	if err != nil {
 		return
 	}
-	// Easiest way to convert the internal struct used by the JSON marshaler
-	// is to reserialize it to JSON and deserialize it back.
-	// mapstructure library is supposed to do this, but it was omitting arbitrary fields.
-	res = &cpi.AgentEnv{}
-	buf, err := json.Marshal(vm.Metadata)
-	if err != nil {
-		return
+	metadata, ok := vm.Metadata[metadataKey]
+	if !ok {
+		err = fmt.Errorf("No metadata found with key '%s' for vm ID '%s'", metadataKey, vmID)
 	}
-	err = json.Unmarshal(buf, res)
+	res = &cpi.AgentEnv{}
+	err = json.Unmarshal([]byte(metadata), res)
 	return
 }
 
 func putAgentEnvMetadata(ctx *cpi.Context, vmID string, env *cpi.AgentEnv) (err error) {
-	metadata := &ec.VmMetadata{env}
+	envJson, err := json.Marshal(env)
+	if err != nil {
+		return
+	}
+	envString := string(envJson[:])
+	metadata := &ec.VmMetadata{map[string]string{metadataKey: envString}}
 	// Task returns instantly for SetMetadata
 	_, err = ctx.Client.VMs.SetMetadata(vmID, metadata)
 	return

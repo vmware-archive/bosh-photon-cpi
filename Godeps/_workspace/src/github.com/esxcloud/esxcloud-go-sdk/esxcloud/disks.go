@@ -13,7 +13,7 @@ type DisksAPI struct {
 
 // Gets a PersistentDisk for the disk with specified ID.
 func (api *DisksAPI) Get(diskID string) (disk *PersistentDisk, err error) {
-	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/disks/"+diskID)
+	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/disks/"+diskID, api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -29,7 +29,7 @@ func (api *DisksAPI) Get(diskID string) (disk *PersistentDisk, err error) {
 
 // Deletes a disk with the specified ID.
 func (api *DisksAPI) Delete(diskID string, force bool) (task *Task, err error) {
-	res, err := rest.Delete(api.client.httpClient, api.client.Endpoint+"/v1/disks/"+diskID+"?force="+strconv.FormatBool(force))
+	res, err := rest.Delete(api.client.httpClient, api.client.Endpoint+"/v1/disks/"+diskID+"?force="+strconv.FormatBool(force), api.client.options.Token)
 	if err != nil {
 		return
 	}

@@ -23,7 +23,7 @@ func (api *FlavorsAPI) Create(spec *FlavorCreateSpec) (task *Task, err error) {
 	if err != nil {
 		return
 	}
-	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+"/v1/flavors", bytes.NewReader(body))
+	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+"/v1/flavors", bytes.NewReader(body), api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -34,7 +34,7 @@ func (api *FlavorsAPI) Create(spec *FlavorCreateSpec) (task *Task, err error) {
 
 // Gets details of flavor with specified ID.
 func (api *FlavorsAPI) Get(flavorID string) (flavor *Flavor, err error) {
-	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/flavors/"+flavorID)
+	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/flavors/"+flavorID, api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -54,7 +54,7 @@ func (api *FlavorsAPI) GetAll(options *FlavorGetOptions) (flavors *FlavorList, e
 	if options != nil {
 		uri += getQueryString(options)
 	}
-	res, err := rest.Get(api.client.httpClient, uri)
+	res, err := rest.Get(api.client.httpClient, uri, api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -70,7 +70,7 @@ func (api *FlavorsAPI) GetAll(options *FlavorGetOptions) (flavors *FlavorList, e
 
 // Deletes flavor with specified ID.
 func (api *FlavorsAPI) Delete(flavorID string) (task *Task, err error) {
-	res, err := rest.Delete(api.client.httpClient, api.client.Endpoint+"/v1/flavors/"+flavorID)
+	res, err := rest.Delete(api.client.httpClient, api.client.Endpoint+"/v1/flavors/"+flavorID, api.client.options.Token)
 	if err != nil {
 		return
 	}

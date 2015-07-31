@@ -1,6 +1,7 @@
 package esxcloud
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -10,10 +11,11 @@ func TestCreateGetAndDeleteTenants(t *testing.T) {
 	server.SetResponseJson(200, mockTask)
 	defer server.Close()
 
-	tenantSpec := &TenantCreateSpec{Name: randomString(10)}
+	tenantSpec := &TenantCreateSpec{Name: randomString(10, "go-sdk-tenant-")}
 	task, err := client.Tenants.Create(tenantSpec)
 	if err != nil {
 		t.Error("Not expecting error from Create")
+		t.Log(err)
 	}
 	if task == nil {
 		t.Error("Not expecting task to be nil")
@@ -29,6 +31,7 @@ func TestCreateGetAndDeleteTenants(t *testing.T) {
 	tenants, err := client.Tenants.GetAll()
 	if err != nil {
 		t.Error("Not expecting error from GetAll")
+		t.Log(err)
 	}
 	if tenants == nil {
 		t.Error("Not expecting tenants to be nil")
@@ -51,6 +54,7 @@ func TestCreateGetAndDeleteTenants(t *testing.T) {
 	task, err = client.Tenants.Delete(task.Entity.ID)
 	if err != nil {
 		t.Error("Not expecting error from Create")
+		t.Log(err)
 	}
 	if task == nil {
 		t.Error("Not expecting task to be nil")
@@ -69,7 +73,7 @@ func TestCreateAndGetResTickets(t *testing.T) {
 	server.SetResponseJson(200, mockTask)
 	defer server.Close()
 
-	tenantSpec := &TenantCreateSpec{Name: randomString(10)}
+	tenantSpec := &TenantCreateSpec{Name: randomString(10, "go-sdk-tenant-")}
 	tenantTask, _ := client.Tenants.Create(tenantSpec)
 	spec := &ResourceTicketCreateSpec{
 		Name:   randomString(10),
@@ -81,6 +85,7 @@ func TestCreateAndGetResTickets(t *testing.T) {
 	task, err := client.Tenants.CreateResourceTicket(tenantTask.Entity.ID, spec)
 	if err != nil {
 		t.Error("Not expecting error from CreateResourceTicket")
+		t.Log(err)
 	}
 	if task == nil {
 		t.Error("Not expecting task to be nil")
@@ -97,6 +102,7 @@ func TestCreateAndGetResTickets(t *testing.T) {
 	resList, err := client.Tenants.GetResourceTickets(tenantTask.Entity.ID, &ResourceTicketGetOptions{spec.Name})
 	if err != nil {
 		t.Error("Not expecting error from GetResourceTickets")
+		t.Log(err)
 	}
 	if resList == nil {
 		t.Error("Not expecting resource list to be nil")
@@ -116,6 +122,7 @@ func TestCreateAndGetResTickets(t *testing.T) {
 	_, err = client.Tenants.Delete(tenantTask.Entity.ID)
 	if err != nil {
 		t.Error("Not expecting error when deleting tenant")
+		t.Log(err)
 	}
 }
 
@@ -125,7 +132,7 @@ func TestCreateAndGetProjects(t *testing.T) {
 	server.SetResponseJson(200, mockTask)
 	defer server.Close()
 
-	tenantSpec := &TenantCreateSpec{Name: randomString(10)}
+	tenantSpec := &TenantCreateSpec{Name: randomString(10, "go-sdk-tenant-")}
 	tenantTask, _ := client.Tenants.Create(tenantSpec)
 
 	resSpec := &ResourceTicketCreateSpec{
@@ -139,7 +146,7 @@ func TestCreateAndGetProjects(t *testing.T) {
 			resSpec.Name,
 			[]QuotaLineItem{QuotaLineItem{"GB", 2, "vm.memory"}},
 		},
-		randomString(10),
+		randomString(10, "go-sdk-project-"),
 	}
 
 	mockTask = createMockTask("CREATE_PROJECT", "COMPLETED")
@@ -148,6 +155,7 @@ func TestCreateAndGetProjects(t *testing.T) {
 
 	if err != nil {
 		t.Error("Not expecting error from CreateProject")
+		t.Log(err)
 	}
 	if task == nil {
 		t.Error("Not expecting task to be nil")
@@ -164,6 +172,7 @@ func TestCreateAndGetProjects(t *testing.T) {
 	projList, err := client.Tenants.GetProjects(tenantTask.Entity.ID, &ProjectGetOptions{projSpec.Name})
 	if err != nil {
 		t.Error("Not expecting error from GetProjects")
+		t.Log(err)
 	}
 	if projList == nil {
 		t.Error("Not expecting project list to be nil")
@@ -183,11 +192,73 @@ func TestCreateAndGetProjects(t *testing.T) {
 	_, err = client.Projects.Delete(task.Entity.ID)
 	if err != nil {
 		t.Error("Not expecting error when deleting project")
+		t.Log(err)
 	}
 
 	// Cleanup tenant
 	_, err = client.Tenants.Delete(tenantTask.Entity.ID)
 	if err != nil {
 		t.Error("Not expecting error when deleting tenant")
+		t.Log(err)
+	}
+}
+
+func TestTenantGetTask(t *testing.T) {
+	mockTask := createMockTask("CREATE_TENANT", "COMPLETED")
+	server, client := testSetup()
+	server.SetResponseJson(200, mockTask)
+	defer server.Close()
+
+	tenantSpec := &TenantCreateSpec{
+		Name: randomString(10, "go-sdk-tenant-"),
+	}
+	createTask, err := client.Tenants.Create(tenantSpec)
+	if err != nil {
+		t.Error("Not expecting error")
+		t.Log(err)
+	}
+	if createTask == nil {
+		t.Error("Not expecting task to be nil")
+	}
+	if createTask.Operation != "CREATE_TENANT" {
+		t.Error("Expected task operation to be CREATE_TENANT")
+	}
+	if createTask.State != "COMPLETED" {
+		t.Error("Expected task status to be COMPLETED")
+	}
+
+	server.SetResponseJson(200, &TaskList{[]Task{*createTask}})
+	taskList, err := client.Tenants.GetTasks(createTask.Entity.ID, nil)
+	if err != nil {
+		t.Error("Did not expect error from GetTasks")
+		t.Log(err)
+	}
+
+	var found bool
+	for _,task := range taskList.Items {
+		if reflect.DeepEqual(task, *createTask) {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("Did not find task with tenant id " + createTask.Entity.ID)
+	}
+
+	taskList, err = client.Tenants.GetTasks(createTask.Entity.ID, &TaskGetOptions{State: "COMPLETED"})
+	if err != nil {
+		t.Error("Did not expect error from GetTasks")
+		t.Log(err)
+	}
+
+	found = false
+	for _,task := range taskList.Items {
+		if reflect.DeepEqual(task, *createTask) {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("Did not find task with tenant id " + createTask.Entity.ID + " with state COMPLETED")
 	}
 }

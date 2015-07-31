@@ -4,8 +4,8 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/esxcloud/esxcloud-go-sdk/esxcloud",
-			"Comment": "PROMOTED-5",
-			"Rev": "0756c154cded0cd7efbe3922cde6d47d45a8dd06"
+			"Comment": "PROMOTED-5-15-gdf3199f",
+			"Rev": "df3199ff92fb87cbba5ff722597ceeae2a7510dc"
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",

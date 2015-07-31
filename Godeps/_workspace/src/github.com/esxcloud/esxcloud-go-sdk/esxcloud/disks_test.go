@@ -11,7 +11,7 @@ func TestCreateGetDeleteDisk(t *testing.T) {
 	server.SetResponseJson(200, mockTask)
 	defer server.Close()
 
-	tenantSpec := &TenantCreateSpec{Name: randomString(10)}
+	tenantSpec := &TenantCreateSpec{Name: randomString(10, "go-sdk-tenant-")}
 	tenantTask, _ := client.Tenants.Create(tenantSpec)
 
 	// Create resource ticket
@@ -27,7 +27,7 @@ func TestCreateGetDeleteDisk(t *testing.T) {
 			resSpec.Name,
 			[]QuotaLineItem{QuotaLineItem{"GB", 2, "vm.memory"}},
 		},
-		randomString(10),
+		randomString(10, "go-sdk-project-"),
 	}
 	projTask, _ := client.Tenants.CreateProject(tenantTask.Entity.ID, projSpec)
 
@@ -51,6 +51,7 @@ func TestCreateGetDeleteDisk(t *testing.T) {
 	diskTask, err := client.Projects.CreateDisk(projTask.Entity.ID, diskSpec)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if diskTask == nil {
 		t.Error("Not expecting task to be nil")
@@ -68,6 +69,7 @@ func TestCreateGetDeleteDisk(t *testing.T) {
 	diskTask, err = client.Tasks.Wait(diskTask.ID)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if diskTask == nil {
 		t.Error("Not expecting task to be nil")
@@ -107,6 +109,7 @@ func TestCreateGetDeleteDisk(t *testing.T) {
 	deleteTask, err := client.Disks.Delete(diskTask.Entity.ID, false)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if deleteTask == nil {
 		t.Error("Not expecting task to be nil")
@@ -124,6 +127,7 @@ func TestCreateGetDeleteDisk(t *testing.T) {
 	deleteTask, err = client.Tasks.Wait(deleteTask.ID)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if deleteTask == nil {
 		t.Error("Not expecting task to be nil")

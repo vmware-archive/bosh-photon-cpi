@@ -60,7 +60,7 @@ var _ = Describe("AgentEnv", func() {
 			metadataTask := &ec.Task{State: "COMPLETED"}
 			vm := &ec.VM{
 				ID:       vmID,
-				Metadata: env,
+				Metadata: map[string]string{"bosh-cpi": GetEnvMetadata(env)},
 			}
 
 			RegisterResponder(

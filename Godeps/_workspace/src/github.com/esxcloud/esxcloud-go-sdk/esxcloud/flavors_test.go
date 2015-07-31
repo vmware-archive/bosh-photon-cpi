@@ -19,6 +19,7 @@ func TestCreateGetAndDelete(t *testing.T) {
 	createTask, err := client.Flavors.Create(flavorSpec)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if createTask == nil {
 		t.Error("Not expecting task to be nil")
@@ -35,6 +36,7 @@ func TestCreateGetAndDelete(t *testing.T) {
 	flavor, err := client.Flavors.Get(createTask.Entity.ID)
 	if err != nil {
 		t.Error("Did not expect error from Get")
+		t.Log(err)
 	}
 	if flavor.Name != flavorSpec.Name {
 		t.Error("Flavor returned by Get did not match spec")
@@ -45,6 +47,7 @@ func TestCreateGetAndDelete(t *testing.T) {
 	flavorList, err := client.Flavors.GetAll(&FlavorGetOptions{Name: flavorSpec.Name})
 	if err != nil {
 		t.Error("Did not expect error from Get")
+		t.Log(err)
 	}
 	var found bool
 	for _, f := range flavorList.Items {
@@ -63,6 +66,7 @@ func TestCreateGetAndDelete(t *testing.T) {
 	deleteTask, err := client.Flavors.Delete(createTask.Entity.ID)
 	if err != nil {
 		t.Error("Not expecting error")
+		t.Log(err)
 	}
 	if deleteTask == nil {
 		t.Error("Not expecting task to be nil")

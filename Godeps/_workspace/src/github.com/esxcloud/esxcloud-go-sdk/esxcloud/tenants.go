@@ -23,7 +23,7 @@ type ProjectGetOptions struct {
 
 // Returns all tenants on an esxcloud instance.
 func (api *TenantsAPI) GetAll() (result *Tenants, err error) {
-	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/tenants")
+	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/tenants", api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -43,7 +43,7 @@ func (api *TenantsAPI) Create(tenantSpec *TenantCreateSpec) (task *Task, err err
 	if err != nil {
 		return
 	}
-	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+"/v1/tenants", bytes.NewReader(body))
+	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+"/v1/tenants", bytes.NewReader(body), api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -54,7 +54,7 @@ func (api *TenantsAPI) Create(tenantSpec *TenantCreateSpec) (task *Task, err err
 
 // Deletes the tenant with specified ID. Any projects, VMs, disks, etc., owned by the tenant must be deleted first.
 func (api *TenantsAPI) Delete(id string) (task *Task, err error) {
-	res, err := rest.Delete(api.client.httpClient, api.client.Endpoint+"/v1/tenants/"+id)
+	res, err := rest.Delete(api.client.httpClient, api.client.Endpoint+"/v1/tenants/"+id, api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -69,7 +69,7 @@ func (api *TenantsAPI) CreateResourceTicket(tenantId string, spec *ResourceTicke
 	if err != nil {
 		return
 	}
-	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+"/v1/tenants/"+tenantId+"/resource-tickets", bytes.NewReader(body))
+	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+"/v1/tenants/"+tenantId+"/resource-tickets", bytes.NewReader(body), api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -85,7 +85,7 @@ func (api *TenantsAPI) GetResourceTickets(tenantId string, options *ResourceTick
 	if options != nil {
 		uri += getQueryString(options)
 	}
-	res, err := rest.Get(api.client.httpClient, uri)
+	res, err := rest.Get(api.client.httpClient, uri, api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -105,7 +105,7 @@ func (api *TenantsAPI) CreateProject(tenantId string, spec *ProjectCreateSpec) (
 	if err != nil {
 		return
 	}
-	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+"/v1/tenants/"+tenantId+"/projects", bytes.NewReader(body))
+	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+"/v1/tenants/"+tenantId+"/projects", bytes.NewReader(body), api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -121,7 +121,7 @@ func (api *TenantsAPI) GetProjects(tenantId string, options *ProjectGetOptions) 
 	if options != nil {
 		uri += getQueryString(options)
 	}
-	res, err := rest.Get(api.client.httpClient, uri)
+	res, err := rest.Get(api.client.httpClient, uri, api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -131,6 +131,27 @@ func (api *TenantsAPI) GetProjects(tenantId string, options *ProjectGetOptions) 
 		return
 	}
 	result = &(ProjectList{})
+	err = json.NewDecoder(res.Body).Decode(result)
+	return
+}
+
+// Gets all tasks with the specified tenant ID, using options to filter the results.
+// If options is nil, no filtering will occur.
+func (api *TenantsAPI) GetTasks(id string, options *TaskGetOptions) (result *TaskList, err error) {
+	uri := api.client.Endpoint+"/v1/tenants/"+id+"/tasks"
+	if options != nil {
+		uri += getQueryString(options)
+	}
+	res, err := rest.Get(api.client.httpClient, uri, api.client.options.Token)
+	if err != nil {
+		return
+	}
+	defer res.Body.Close()
+	res, err = getError(res)
+	if err != nil {
+		return
+	}
+	result = &TaskList{}
 	err = json.NewDecoder(res.Body).Decode(result)
 	return
 }
