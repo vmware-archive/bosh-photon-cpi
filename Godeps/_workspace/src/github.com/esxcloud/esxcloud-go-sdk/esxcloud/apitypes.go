@@ -79,15 +79,16 @@ type Step struct {
 
 // Represents an asynchronous task.
 type Task struct {
-	ID          string `json:"id"`
-	Operation   string `json:"operation,omitempty"`
-	State       string `json:"state"`
-	StartedTime int64  `json:"startedTime"`
-	EndTime     int64  `json:"endTime,omitempty"`
-	QueuedTime  int64  `json:"queuedTime"`
-	Entity      Entity `json:"entity,omitempty"`
-	SelfLink    string `json:"selfLink,omitempty"`
-	Steps       []Step `json:"steps,omitempty"`
+	ID                 string      `json:"id"`
+	Operation          string      `json:"operation,omitempty"`
+	State              string      `json:"state"`
+	StartedTime        int64       `json:"startedTime"`
+	EndTime            int64       `json:"endTime,omitempty"`
+	QueuedTime         int64       `json:"queuedTime"`
+	Entity             Entity      `json:"entity,omitempty"`
+	SelfLink           string      `json:"selfLink,omitempty"`
+	Steps              []Step      `json:"steps,omitempty"`
+	ResourceProperties interface{} `json:"resourceProperties,omitempty"`
 }
 
 // Represents multiple tasks returned by the API.
@@ -97,8 +98,10 @@ type TaskList struct {
 
 // Options for GetTasks API.
 type TaskGetOptions struct {
-	State string
-	Kind  string
+	State      string `urlParam:"state"`
+	Kind       string `urlParam:"kind"`
+	EntityID   string `urlParam:"entityId"`
+	EntityKind string `urlParam:"entityKind"`
 }
 
 type BaseCompact struct {
@@ -123,7 +126,7 @@ type DiskCreateSpec struct {
 	Flavor     string         `json:"flavor"`
 	Kind       string         `json:"kind"`
 	CapacityGB int            `json:"capacityGb"`
-	Affinities []LocalitySpec `json:"localitySpec,omitempty"`
+	Affinities []LocalitySpec `json:"affinities,omitempty"`
 	Name       string         `json:"name"`
 	Tags       []string       `json:"tags,omitempty"`
 }
@@ -270,12 +273,14 @@ type ResourceTicketReservation struct {
 
 // Creation spec for VMs.
 type VmCreateSpec struct {
-	Flavor        string         `json:"flavor"`
-	SourceImageID string         `json:"sourceImageId"`
-	AttachedDisks []AttachedDisk `json:"attachedDisks"`
-	Affinities    []LocalitySpec `json:"affinities,omitempty"`
-	Name          string         `json:"name"`
-	Tags          []string       `json:"tags,omitempty"`
+	Flavor        string            `json:"flavor"`
+	SourceImageID string            `json:"sourceImageId"`
+	AttachedDisks []AttachedDisk    `json:"attachedDisks"`
+	Affinities    []LocalitySpec    `json:"affinities,omitempty"`
+	Name          string            `json:"name"`
+	Tags          []string          `json:"tags,omitempty"`
+	Networks      []string          `json:"networks,omitempty"`
+	Environment   map[string]string `json:"environment,omitempty"`
 }
 
 // Represents possible operations for VMs. Valid values include:
@@ -290,11 +295,16 @@ type VmMetadata struct {
 	Metadata map[string]string `json:"metadata"`
 }
 
+// Represents tags that can be set on a VM.
+type VmTag struct {
+	Tag string `json:"tag"`
+}
+
 // Represents a single attached disk.
 type AttachedDisk struct {
 	Flavor     string `json:"flavor"`
 	Kind       string `json:"kind"`
-	CapacityGB int    `json:"capacityGb"`
+	CapacityGB int    `json:"capacityGb,omitempty"`
 	Name       string `json:"name"`
 	State      string `json:"state"`
 	ID         string `json:"id,omitempty"`
@@ -315,7 +325,7 @@ type VM struct {
 	Flavor        string            `json:"flavor"`
 	Host          string            `json:"host,omitempty"`
 	Name          string            `json:"name"`
-	State         string            `json:"string"`
+	State         string            `json:"state"`
 	ID            string            `json:"id"`
 }
 
@@ -362,24 +372,24 @@ type FlavorList struct {
 
 // Creation spec for hosts.
 type HostCreateSpec struct {
-	Username string      `json:"username"`
-	Password string      `json:"password"`
-	Metadata interface{} `json:"metadata,omitempty"`
-	Address  string      `json:"address"`
-	Tags     []string    `json:"usageTags"`
+	Username string            `json:"username"`
+	Password string            `json:"password"`
+	Metadata map[string]string `json:"metadata,omitempty"`
+	Address  string            `json:"address"`
+	Tags     []string          `json:"usageTags"`
 }
 
 // Represents a host
 type Host struct {
-	Username string      `json:"username"`
-	Password string      `json:"password"`
-	Address  string      `json:"address"`
-	Kind     string      `json:"kind"`
-	ID       string      `json:"id"`
-	Tags     []string    `json:"usageTags"`
-	Metadata interface{} `json:"metadata,omitempty"`
-	SelfLink string      `json:"selfLink"`
-	State    string      `json:"state"`
+	Username string            `json:"username"`
+	Password string            `json:"password"`
+	Address  string            `json:"address"`
+	Kind     string            `json:"kind"`
+	ID       string            `json:"id"`
+	Tags     []string          `json:"usageTags"`
+	Metadata map[string]string `json:"metadata,omitempty"`
+	SelfLink string            `json:"selfLink"`
+	State    string            `json:"state"`
 }
 
 // Represents multiple hosts returned by the API.
@@ -421,4 +431,61 @@ type AuthInfo struct {
 	Tenant   string `json:"tenant,omitempty"`
 	Enabled  bool   `json:"enabled"`
 	Username string `json:"username,omitempty"`
+}
+
+// Creation spec for networks.
+type NetworkCreateSpec struct {
+	Name        string   `json:"name"`
+	Description string   `json:"description,omitempty"`
+	PortGroups  []string `json:"portGroups"`
+}
+
+// Represents a network
+type Network struct {
+	Kind        string   `json:"kind"`
+	Name        string   `json:"name"`
+	Description string   `json:"description,omitempty"`
+	State       string   `json:"state"`
+	ID          string   `json:"id"`
+	PortGroups  []string `json:"portGroups"`
+	Tags        []string `json:"tags,omitempty"`
+	SelfLink    string   `json:"selfLink"`
+}
+
+// Represents multiple networks returned by the API
+type Networks struct {
+	Items []Network `json:"items"`
+}
+
+// Creation spec for clusters.
+type ClusterCreateSpec struct {
+	Name               string            `json:"name"`
+	SlaveCount         int               `json:"slaveCount"`
+	Type               string            `json:"type"`
+	ExtendedProperties map[string]string `json:"extendedProperties"`
+	DiskFlavor         string            `json:"diskFlavor,omitempty"`
+	VMFlavor           string            `json:"vmFlavor,omitempty"`
+}
+
+// Represents a cluster
+type Cluster struct {
+	Kind               string            `json:"kind"`
+	Name               string            `json:"name"`
+	State              string            `json:"state"`
+	ID                 string            `json:"id"`
+	Type               string            `json:"type"`
+	ProjectID          string            `json:"projectID,omitempty"`
+	SlaveCount         int               `json:"slaveCount"`
+	SelfLink           string            `json:"selfLink,omitempty"`
+	ExtendedProperties map[string]string `json:"extendedProperties"`
+}
+
+// Represents multiple clusters returned by the API
+type Clusters struct {
+	Items []Cluster `json:"items"`
+}
+
+// Represents cluster size that can be resized for cluster
+type ClusterResizeOperation struct {
+	NewSlaveCount int `json:"newSlaveCount"`
 }

@@ -3,6 +3,7 @@ package esxcloud
 import (
 	"bytes"
 	"encoding/json"
+
 	"github.com/esxcloud/esxcloud-go-sdk/esxcloud/internal/rest"
 )
 
@@ -13,17 +14,19 @@ type TenantsAPI struct {
 
 // Options for GetResourceTickets API.
 type ResourceTicketGetOptions struct {
-	Name string
+	Name string `urlParam:"name"`
 }
 
 // Options for GetProjects API.
 type ProjectGetOptions struct {
-	Name string
+	Name string `urlParam:"name"`
 }
+
+var TenantUrl string = "/tenants"
 
 // Returns all tenants on an esxcloud instance.
 func (api *TenantsAPI) GetAll() (result *Tenants, err error) {
-	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/tenants", api.client.options.Token)
+	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+TenantUrl, api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -43,7 +46,7 @@ func (api *TenantsAPI) Create(tenantSpec *TenantCreateSpec) (task *Task, err err
 	if err != nil {
 		return
 	}
-	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+"/v1/tenants", bytes.NewReader(body), api.client.options.Token)
+	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+TenantUrl, bytes.NewReader(body), api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -54,7 +57,7 @@ func (api *TenantsAPI) Create(tenantSpec *TenantCreateSpec) (task *Task, err err
 
 // Deletes the tenant with specified ID. Any projects, VMs, disks, etc., owned by the tenant must be deleted first.
 func (api *TenantsAPI) Delete(id string) (task *Task, err error) {
-	res, err := rest.Delete(api.client.httpClient, api.client.Endpoint+"/v1/tenants/"+id, api.client.options.Token)
+	res, err := rest.Delete(api.client.httpClient, api.client.Endpoint+TenantUrl+"/"+id, api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -69,7 +72,7 @@ func (api *TenantsAPI) CreateResourceTicket(tenantId string, spec *ResourceTicke
 	if err != nil {
 		return
 	}
-	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+"/v1/tenants/"+tenantId+"/resource-tickets", bytes.NewReader(body), api.client.options.Token)
+	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+TenantUrl+"/"+tenantId+"/resource-tickets", bytes.NewReader(body), api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -81,7 +84,7 @@ func (api *TenantsAPI) CreateResourceTicket(tenantId string, spec *ResourceTicke
 // Gets resource tickets for tenant with the specified ID, using options to filter the results.
 // If options is nil, no filtering will occur.
 func (api *TenantsAPI) GetResourceTickets(tenantId string, options *ResourceTicketGetOptions) (tickets *ResourceList, err error) {
-	uri := api.client.Endpoint + "/v1/tenants/" + tenantId + "/resource-tickets"
+	uri := api.client.Endpoint + TenantUrl + "/" + tenantId + "/resource-tickets"
 	if options != nil {
 		uri += getQueryString(options)
 	}
@@ -105,7 +108,7 @@ func (api *TenantsAPI) CreateProject(tenantId string, spec *ProjectCreateSpec) (
 	if err != nil {
 		return
 	}
-	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+"/v1/tenants/"+tenantId+"/projects", bytes.NewReader(body), api.client.options.Token)
+	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+TenantUrl+"/"+tenantId+"/projects", bytes.NewReader(body), api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -117,7 +120,7 @@ func (api *TenantsAPI) CreateProject(tenantId string, spec *ProjectCreateSpec) (
 // Gets the projects for tenant with the specified ID, using options to filter the results.
 // If options is nil, no filtering will occur.
 func (api *TenantsAPI) GetProjects(tenantId string, options *ProjectGetOptions) (result *ProjectList, err error) {
-	uri := api.client.Endpoint + "/v1/tenants/" + tenantId + "/projects"
+	uri := api.client.Endpoint + TenantUrl + "/" + tenantId + "/projects"
 	if options != nil {
 		uri += getQueryString(options)
 	}
@@ -138,7 +141,7 @@ func (api *TenantsAPI) GetProjects(tenantId string, options *ProjectGetOptions) 
 // Gets all tasks with the specified tenant ID, using options to filter the results.
 // If options is nil, no filtering will occur.
 func (api *TenantsAPI) GetTasks(id string, options *TaskGetOptions) (result *TaskList, err error) {
-	uri := api.client.Endpoint+"/v1/tenants/"+id+"/tasks"
+	uri := api.client.Endpoint + TenantUrl + "/" + id + "/tasks"
 	if options != nil {
 		uri += getQueryString(options)
 	}

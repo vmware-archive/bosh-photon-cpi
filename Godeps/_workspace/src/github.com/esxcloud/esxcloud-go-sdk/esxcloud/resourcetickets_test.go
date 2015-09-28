@@ -1,33 +1,50 @@
 package esxcloud
 
 import (
-	"reflect"
-	"testing"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-func TestResourceTicketGetTask(t *testing.T) {
-	if isIntegrationTest() {
-		t.Skip("Skipping on integration mode. Need fix to run in integration")
-	}
-	mockTask := createMockTask("CREATE_RESOURCE_TICKET", "COMPLETED")
-	server, client := testSetup()
-	server.SetResponseJson(200, &TaskList{[]Task{*mockTask}})
-	defer server.Close()
+var _ = Describe("ResourceTicket", func() {
+	var (
+		server   *testServer
+		client   *Client
+		tenantID string
+	)
 
-	taskList, err := client.ResourceTickets.GetTasks(mockTask.Entity.ID, nil)
-	if err != nil {
-		t.Error("Did not expect error from GetTasks")
-		t.Log(err)
-	}
+	BeforeEach(func() {
+		server, client = testSetup()
+		tenantID = createTenant(server, client)
+	})
 
-	found := false
-	for _,task := range taskList.Items {
-		if reflect.DeepEqual(task, *mockTask) {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Error("Did not find task with resource ticket id " + mockTask.Entity.ID + " with state COMPLETED")
-	}
-}
+	AfterEach(func() {
+		cleanTenants(client)
+		server.Close()
+	})
+
+	Describe("GetResourceTicketTasks", func() {
+		It("GetTasks returns a completed task", func() {
+			mockTask := createMockTask("CREATE_RESOURCE_TICKET", "COMPLETED")
+			mockTask.Entity.ID = "mock-task-id"
+			server.SetResponseJson(200, mockTask)
+			spec := &ResourceTicketCreateSpec{
+				Name:   randomString(10),
+				Limits: []QuotaLineItem{QuotaLineItem{Unit: "GB", Value: 16, Key: "vm.memory"}},
+			}
+			task, err := client.Tenants.CreateResourceTicket(tenantID, spec)
+
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+			Expect(task).ShouldNot(BeNil())
+			Expect(task.Operation).Should(Equal("CREATE_RESOURCE_TICKET"))
+			Expect(task.State).Should(Equal("COMPLETED"))
+
+			server.SetResponseJson(200, &TaskList{[]Task{*mockTask}})
+			taskList, err := client.ResourceTickets.GetTasks(task.Entity.ID, &TaskGetOptions{})
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+			Expect(taskList).ShouldNot(BeNil())
+			Expect(taskList.Items).Should(ContainElement(*task))
+		})
+	})
+})

@@ -1,67 +1,64 @@
 package esxcloud
 
 import (
-	"testing"
 	"time"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-func TestTaskError(t *testing.T) {
-	// Unit test only
-	if isIntegrationTest() {
-		return
-	}
-	server, client := testSetup()
-	defer server.Close()
+var _ = Describe("ErrorTesting", func() {
+	var (
+		server *testServer
+		client *Client
+	)
 
-	task := &Task{ID: "fake-id", State: "ERROR", Operation: "fake-op"}
-	server.SetResponseJson(200, task)
-	task, err := client.Tasks.Wait(task.ID)
-	taskErr, ok := err.(TaskError)
-	if !ok {
-		t.Error("Expecting to find error of type TaskError")
-	} else if taskErr.ID != task.ID {
-		t.Error("TaskError.ID not equal to actual task ID")
-	}
+	BeforeEach(func() {
+		server, client = testSetup()
+	})
 
-	client.options.TaskPollTimeout = 1 * time.Second
-}
+	AfterEach(func() {
+		server.Close()
+	})
 
-func TestTaskTimeoutError(t *testing.T) {
-	// Unit test only
-	if isIntegrationTest() {
-		return
-	}
-	server, client := testSetup()
-	defer server.Close()
+	It("TaskError", func() {
+		// Unit test only
+		if isIntegrationTest() {
+			return
+		}
+		task := &Task{ID: "fake-id", State: "ERROR", Operation: "fake-op"}
+		server.SetResponseJson(200, task)
+		task, err := client.Tasks.Wait(task.ID)
+		taskErr, ok := err.(TaskError)
+		Expect(ok).ShouldNot(BeNil())
+		Expect(taskErr.ID).Should(Equal(task.ID))
+	})
 
-	client.options.TaskPollTimeout = 1 * time.Second
-	task := &Task{ID: "fake-id", State: "QUEUED", Operation: "fake-op"}
-	server.SetResponseJson(200, task)
-	task, err := client.Tasks.Wait(task.ID)
-	taskErr, ok := err.(TaskTimeoutError)
-	if !ok {
-		t.Error("Expecting to find error of type TaskTimeoutError")
-	} else if taskErr.ID != task.ID {
-		t.Error("TaskTimeoutError.ID not equal to actual task ID")
-	}
-}
+	It("TaskTimeoutError", func() {
+		// Unit test only
+		if isIntegrationTest() {
+			return
+		}
+		client.options.TaskPollTimeout = 1 * time.Second
+		task := &Task{ID: "fake-id", State: "QUEUED", Operation: "fake-op"}
+		server.SetResponseJson(200, task)
+		task, err := client.Tasks.Wait(task.ID)
+		taskErr, ok := err.(TaskTimeoutError)
+		Expect(ok).ShouldNot(BeNil())
+		Expect(taskErr.ID).Should(Equal(task.ID))
+	})
 
-func TestHttpError(t *testing.T) {
-	// Unit test only
-	if isIntegrationTest() {
-		return
-	}
-	server, client := testSetup()
-	defer server.Close()
-
-	client.options.TaskPollTimeout = 1 * time.Second
-	task := &Task{ID: "fake-id", State: "QUEUED", Operation: "fake-op"}
-	server.SetResponseJson(500, "server error")
-	task, err := client.Tasks.Wait(task.ID)
-	taskErr, ok := err.(HttpError)
-	if !ok {
-		t.Error("Expecting to find error of type HttpError")
-	} else if taskErr.StatusCode != 500 {
-		t.Error("HttpError.StatusCode did not equal error from server")
-	}
-}
+	It("HttpError", func() {
+		// Unit test only
+		if isIntegrationTest() {
+			return
+		}
+		client.options.TaskPollTimeout = 1 * time.Second
+		task := &Task{ID: "fake-id", State: "QUEUED", Operation: "fake-op"}
+		server.SetResponseJson(500, "server error")
+		task, err := client.Tasks.Wait(task.ID)
+		taskErr, ok := err.(HttpError)
+		Expect(ok).ShouldNot(BeNil())
+		Expect(taskErr.StatusCode).Should(Equal(500))
+	})
+})

@@ -8,20 +8,22 @@ import (
 
 // Represents stateless context needed to call esxcloud APIs.
 type Client struct {
-	options     	ClientOptions
-	httpClient  	*http.Client
-	Endpoint    	string
-	Status      	*StatusAPI
-	Tenants     	*TenantsAPI
-	Tasks       	*TasksAPI
-	Projects    	*ProjectsAPI
-	Flavors     	*FlavorsAPI
-	Images      	*ImagesAPI
-	Disks       	*DisksAPI
-	VMs         	*VmAPI
-	Hosts       	*HostsAPI
-	Deployments 	*DeploymentsAPI
+	options         ClientOptions
+	httpClient      *http.Client
+	Endpoint        string
+	Status          *StatusAPI
+	Tenants         *TenantsAPI
+	Tasks           *TasksAPI
+	Projects        *ProjectsAPI
+	Flavors         *FlavorsAPI
+	Images          *ImagesAPI
+	Disks           *DisksAPI
+	VMs             *VmAPI
+	Hosts           *HostsAPI
+	Deployments     *DeploymentsAPI
 	ResourceTickets *ResourceTicketsAPI
+	Networks        *NetworksAPI
+	Clusters        *ClustersAPI
 }
 
 // Options for Client
@@ -91,6 +93,8 @@ func NewClient(endpoint string, options *ClientOptions) (c *Client) {
 	c.Hosts = &HostsAPI{c}
 	c.Deployments = &DeploymentsAPI{c}
 	c.ResourceTickets = &ResourceTicketsAPI{c}
+	c.Networks = &NetworksAPI{c}
+	c.Clusters = &ClustersAPI{c}
 	return
 }
 

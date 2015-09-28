@@ -1,197 +1,248 @@
 package esxcloud
 
 import (
-	"testing"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-func TestCreateGetAndDeleteDeployment(t *testing.T) {
-	if isIntegrationTest() {
-		t.Skip("Skipping deployment test on integration mode. Need undeployed environment")
-	}
-	// Test Create
-	mockTask := createMockTask("CREATE_DEPLOYMENT", "COMPLETED")
-	server, client := testSetup()
-	server.SetResponseJson(200, mockTask)
-	defer server.Close()
+var _ = Describe("Deployment", func() {
+	var (
+		server         *testServer
+		client         *Client
+		deploymentSpec *DeploymentCreateSpec
+	)
 
-	deploymentSpec := &DeploymentCreateSpec{
-		ImageDatastore: randomString(10),
-		Auth: &AuthInfo {
-			Enabled: false,
-		},
-	}
-	createTask, err := client.Deployments.Create(deploymentSpec)
-	if err != nil {
-		t.Error("Not expecting error")
-		t.Log(err)
-	}
-	if createTask == nil {
-		t.Error("Not expecting task to be nil")
-	}
-	if createTask.Operation != "CREATE_DEPLOYMENT" {
-		t.Error("Expected task operation to be CREATE_DEPLOYMENT")
-	}
-	if createTask.State != "COMPLETED" {
-		t.Error("Expected task status to be COMPLETED")
-	}
-
-	// Test Get
-	server.SetResponseJson(200, Deployment{ImageDatastore: deploymentSpec.ImageDatastore, Auth: &AuthInfo{Enabled: false}})
-	deployment, err := client.Deployments.Get(createTask.Entity.ID)
-	if err != nil {
-		t.Error("Did not expect error from Get")
-		t.Log(err)
-	}
-	if deployment.ImageDatastore != deploymentSpec.ImageDatastore {
-		t.Error("Deployment returned by Get did not match spec")
-	}
-
-	// Test GetAll
-	server.SetResponseJson(200, &Deployments{[]Deployment{Deployment{ImageDatastore: deploymentSpec.ImageDatastore, Auth: &AuthInfo{Enabled: false}}}})
-	deploymentList, err := client.Deployments.GetAll()
-	if err != nil {
-		t.Error("Did not expect error from GetAll")
-		t.Log(err)
-	}
-	var found bool
-	for _, d := range deploymentList.Items {
-		if d.ImageDatastore == deploymentSpec.ImageDatastore {
-			found = true
-			break
+	BeforeEach(func() {
+		if isIntegrationTest() {
+			Skip("Skipping deployment test on integration mode. Need undeployed environment")
 		}
-	}
-	if !found {
-		t.Error("Did not find deployment with image datastore name " + deploymentSpec.ImageDatastore)
-	}
-
-	// Test Delete
-	mockTask = createMockTask("DELETE_DEPLOYMENT", "COMPLETED")
-	server.SetResponseJson(200, mockTask)
-	deleteTask, err := client.Deployments.Delete(createTask.Entity.ID)
-	if err != nil {
-		t.Error("Not expecting error")
-		t.Log(err)
-	}
-	if deleteTask == nil {
-		t.Error("Not expecting task to be nil")
-	}
-	if deleteTask.Operation != "DELETE_DEPLOYMENT" {
-		t.Error("Expected task operation to be DELETE_DEPLOYMENT")
-	}
-	if deleteTask.State != "COMPLETED" {
-		t.Error("Expected task status to be COMPLETED")
-	}
-}
-
-func TestDeploymentGetHosts(t *testing.T) {
-	if isIntegrationTest() {
-		t.Skip("Skipping deployment test on integration mode. Need undeployed environment")
-	}
-	mockTask := createMockTask("CREATE_DEPLOYMENT", "COMPLETED")
-	server, client := testSetup()
-	server.SetResponseJson(200, mockTask)
-	defer server.Close()
-
-	deploymentSpec := &DeploymentCreateSpec{
-		ImageDatastore: randomString(10),
-		Auth: &AuthInfo {
-			Enabled: false,
-		},
-	}
-	createTask, err := client.Deployments.Create(deploymentSpec)
-	if err != nil {
-		t.Error("Not expecting error")
-		t.Log(err)
-	}
-	if createTask == nil {
-		t.Error("Not expecting task to be nil")
-	}
-	if createTask.Operation != "CREATE_DEPLOYMENT" {
-		t.Error("Expected task operation to be CREATE_DEPLOYMENT")
-	}
-	if createTask.State != "COMPLETED" {
-		t.Error("Expected task status to be COMPLETED")
-	}
-
-	mockTask = createMockTask("CREATE_HOST", "COMPLETED")
-	server.SetResponseJson(200, mockTask)
-
-	hostSpec := &HostCreateSpec{
-		Username: randomString(10),
-		Password: randomString(10),
-		Address: randomString(10),
-		Tags: []string{},
-	}
-
-	server.SetResponseJson(200, &Hosts{[]Host{Host{Username: hostSpec.Username, Password: hostSpec.Password}}})
-	hostList, err := client.Deployments.GetHosts(createTask.Entity.ID)
-	if err != nil {
-		t.Error("Did not expect error from GetHosts")
-		t.Log(err)
-	}
-	var found bool
-	for _, host := range hostList.Items {
-		if host.Username == hostSpec.Username && host.Password == hostSpec.Password {
-			found = true
-			break
+		server, client = testSetup()
+		deploymentSpec = &DeploymentCreateSpec{
+			ImageDatastore: randomString(10, "go-sdk-deployment-"),
+			Auth: &AuthInfo{
+				Enabled: false,
+			},
 		}
-	}
-	if !found {
-		t.Error("Did not find host with deployment id " + createTask.Entity.ID + " host name " + hostSpec.Username + " host password " + hostSpec.Password)
-	}
-}
+	})
 
-func TestDeploymentGetVMs(t *testing.T) {
-	if isIntegrationTest() {
-		t.Skip("Skipping deployment test on integration mode. Need undeployed environment")
-	}
-	mockTask := createMockTask("CREATE_DEPLOYMENT", "COMPLETED")
-	server, client := testSetup()
-	server.SetResponseJson(200, mockTask)
-	defer server.Close()
+	AfterEach(func() {
+		server.Close()
+	})
 
-	deploymentSpec := &DeploymentCreateSpec{
-		ImageDatastore: randomString(10),
-		Auth: &AuthInfo {
-			Enabled: false,
-		},
-	}
-	createTask, err := client.Deployments.Create(deploymentSpec)
-	if err != nil {
-		t.Error("Not expecting error")
-		t.Log(err)
-	}
-	if createTask == nil {
-		t.Error("Not expecting task to be nil")
-	}
-	if createTask.Operation != "CREATE_DEPLOYMENT" {
-		t.Error("Expected task operation to be CREATE_DEPLOYMENT")
-	}
-	if createTask.State != "COMPLETED" {
-		t.Error("Expected task status to be COMPLETED")
-	}
+	Describe("CreateGetAndDeleteDeployment", func() {
+		It("Deployment create and delete succeeds", func() {
+			if isIntegrationTest() {
+				Skip("Skipping deployment test on integration mode. Need undeployed environment")
+			}
+			mockTask := createMockTask("CREATE_DEPLOYMENT", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
 
-	mockTask = createMockTask("CREATE_VM", "COMPLETED")
-	server.SetResponseJson(200, mockTask)
+			task, err := client.Deployments.Create(deploymentSpec)
+			task, err = client.Tasks.Wait(task.ID)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+			Expect(task).ShouldNot(BeNil())
+			Expect(task.Operation).Should(Equal("CREATE_DEPLOYMENT"))
+			Expect(task.State).Should(Equal("COMPLETED"))
 
-	vmSpec := &VM{
-		Name: randomString(10, "go-sdk-vm-"),
-	}
+			mockDeployment := Deployment{
+				ImageDatastore: deploymentSpec.ImageDatastore,
+				Auth: &AuthInfo{Enabled: false},
+			}
+			server.SetResponseJson(200, mockDeployment)
+			deployment, err := client.Deployments.Get(task.Entity.ID)
 
-	server.SetResponseJson(200, &VMs{[]VM{VM{Name: vmSpec.Name}}})
-	vmList, err := client.Deployments.GetVms(createTask.Entity.ID)
-	if err != nil {
-		t.Error("Did not expect error from GetHosts")
-		t.Log(err)
-	}
-	var found bool
-	for _, vm := range vmList.Items {
-		if vm.Name == vmSpec.Name {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Error("Did not find vm with deployment id " + createTask.Entity.ID + " vm name " + vmSpec.Name)
-	}
-}
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+			Expect(deployment).ShouldNot(BeNil())
+			Expect(deployment.ImageDatastore).Should(Equal(deploymentSpec.ImageDatastore))
+			Expect(deployment.ID).Should(Equal(task.Entity.ID))
+
+			server.SetResponseJson(200, &Deployments{[]Deployment{mockDeployment}})
+			deploymentList, err := client.Deployments.GetAll()
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+			Expect(deploymentList).ShouldNot(BeNil())
+
+			var found bool
+			for _, d := range deploymentList.Items {
+				if d.ImageDatastore == deploymentSpec.ImageDatastore {
+					found = true
+					break
+				}
+			}
+			Expect(found).Should(BeTrue())
+
+			mockTask = createMockTask("DELETE_DEPLOYMENT", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+			task, err = client.Deployments.Delete(task.Entity.ID)
+			task, err = client.Tasks.Wait(task.ID)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+			Expect(task).ShouldNot(BeNil())
+			Expect(task.Operation).Should(Equal("DELETE_DEPLOYMENT"))
+			Expect(task.State).Should(Equal("COMPLETED"))
+		})
+	})
+
+	Describe("GetDeployment", func() {
+		It("Get Hosts succeeds", func() {
+			mockTask := createMockTask("CREATE_DEPLOYMENT", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+
+			task, err := client.Deployments.Create(deploymentSpec)
+			task, err = client.Tasks.Wait(task.ID)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+
+			mockTask = createMockTask("CREATE_HOST", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+
+			hostSpec := &HostCreateSpec{
+				Username: randomString(10),
+				Password: randomString(10),
+				Address:  randomAddress(),
+				Tags:     []string{"CLOUD"},
+				Metadata: map[string]string{"test": "go-sdk-host"},
+			}
+
+			mockTask = createMockTask("CREATE_HOST", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+
+			hostTask, err := client.Hosts.Create(hostSpec)
+			hostTask, err = client.Tasks.Wait(hostTask.ID)
+
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+
+			server.SetResponseJson(200, &Hosts{[]Host{Host{Tags: hostSpec.Tags, ID: task.Entity.ID}}})
+			hostList, err := client.Deployments.GetHosts(task.Entity.ID)
+
+			var found bool
+			for _, host := range hostList.Items {
+				if host.ID == hostTask.Entity.ID {
+					found = true
+					break
+				}
+			}
+			Expect(found).Should(BeTrue())
+
+			mockTask = createMockTask("DELETE_DEPLOYMENT", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+			task, err = client.Deployments.Delete(task.Entity.ID)
+			task, err = client.Tasks.Wait(task.ID)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+		})
+
+		Context("GetVM needs a vm", func() {
+			var (
+				tenantID     string
+				resName      string
+				projID       string
+				imageID      string
+				flavorSpec   *FlavorCreateSpec
+				vmFlavorSpec *FlavorCreateSpec
+				vmSpec       *VmCreateSpec
+			)
+
+			BeforeEach(func() {
+				tenantID = createTenant(server, client)
+				resName = createResTicket(server, client, tenantID)
+				projID = createProject(server, client, tenantID, resName)
+				imageID = createImage(server, client)
+				flavorSpec = &FlavorCreateSpec{
+					[]QuotaLineItem{QuotaLineItem{"COUNT", 1, "ephemeral-disk.cost"}},
+					"ephemeral-disk",
+					randomString(10, "go-sdk-flavor-"),
+				}
+
+				_, err := client.Flavors.Create(flavorSpec)
+				GinkgoT().Log(err)
+				Expect(err).Should(BeNil())
+
+				vmFlavorSpec = &FlavorCreateSpec{
+					Name: randomString(10, "go-sdk-flavor-"),
+					Kind: "vm",
+					Cost: []QuotaLineItem{
+						QuotaLineItem{"GB", 2, "vm.memory"},
+						QuotaLineItem{"COUNT", 4, "vm.cpu"},
+					},
+				}
+				_, err = client.Flavors.Create(vmFlavorSpec)
+				GinkgoT().Log(err)
+				Expect(err).Should(BeNil())
+
+				vmSpec = &VmCreateSpec{
+					Flavor:        vmFlavorSpec.Name,
+					SourceImageID: imageID,
+					AttachedDisks: []AttachedDisk{
+						AttachedDisk{
+							CapacityGB: 1,
+							Flavor:     flavorSpec.Name,
+							Kind:       "ephemeral-disk",
+							Name:       randomString(10),
+							State:      "STARTED",
+							BootDisk:   true,
+						},
+					},
+					Name: randomString(10, "go-sdk-vm-"),
+				}
+			})
+
+			AfterEach(func() {
+				cleanVMs(client, projID)
+				cleanImages(client)
+				cleanFlavors(client)
+				cleanTenants(client)
+			})
+
+			It("Get VMs succeeds", func() {
+				mockTask := createMockTask("CREATE_DEPLOYMENT", "COMPLETED")
+				server.SetResponseJson(200, mockTask)
+
+				task, err := client.Deployments.Create(deploymentSpec)
+				task, err = client.Tasks.Wait(task.ID)
+				GinkgoT().Log(err)
+				Expect(err).Should(BeNil())
+
+				mockTask = createMockTask("CREATE_VM", "COMPLETED")
+				server.SetResponseJson(200, mockTask)
+				vmTask, err := client.Projects.CreateVM(projID, vmSpec)
+				vmTask, err = client.Tasks.Wait(vmTask.ID)
+				GinkgoT().Log(err)
+				Expect(err).Should(BeNil())
+
+				server.SetResponseJson(200, &VMs{[]VM{VM{Name: vmSpec.Name}}})
+				vmList, err := client.Deployments.GetVms(task.Entity.ID)
+				GinkgoT().Log(err)
+				Expect(err).Should(BeNil())
+
+				var found bool
+				for _, vm := range vmList.Items {
+					if vm.Name == vmSpec.Name && vm.ID == vmTask.Entity.ID {
+						found = true
+						break
+					}
+				}
+				Expect(found).Should(BeTrue())
+
+				mockTask = createMockTask("DELETE_VM", "COMPLETED")
+				server.SetResponseJson(200, mockTask)
+				task, err = client.VMs.Delete(task.Entity.ID)
+				task, err = client.Tasks.Wait(task.ID)
+
+				GinkgoT().Log(err)
+				Expect(err).Should(BeNil())
+
+				mockTask = createMockTask("DELETE_DEPLOYMENT", "COMPLETED")
+				server.SetResponseJson(200, mockTask)
+				task, err = client.Deployments.Delete(task.Entity.ID)
+				task, err = client.Tasks.Wait(task.ID)
+				GinkgoT().Log(err)
+				Expect(err).Should(BeNil())
+			})
+		})
+
+	})
+})

@@ -1,8 +1,10 @@
 package esxcloud
 
 import (
-	"github.com/esxcloud/esxcloud-go-sdk/esxcloud/internal/rest"
+	"encoding/json"
 	"time"
+
+	"github.com/esxcloud/esxcloud-go-sdk/esxcloud/internal/rest"
 )
 
 // Contains functionality for tasks API.
@@ -10,15 +12,38 @@ type TasksAPI struct {
 	client *Client
 }
 
+var TaskUrl string = "/tasks"
+
 // Gets a task by ID.
 func (api *TasksAPI) Get(id string) (task *Task, err error) {
-	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/tasks/"+id, api.client.options.Token)
+	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+TaskUrl+"/"+id, api.client.options.Token)
 	if err != nil {
 		return
 	}
 	defer res.Body.Close()
 	result, err := getTask(getError(res))
 	return result, err
+}
+
+// Gets all tasks, using options to filter the results.
+// If options is nil, no filtering will occur.
+func (api *TasksAPI) GetAll(options *TaskGetOptions) (result *TaskList, err error) {
+	uri := api.client.Endpoint+TaskUrl
+	if options != nil {
+		uri += getQueryString(options)
+	}
+	res, err := rest.Get(api.client.httpClient, uri, api.client.options.Token)
+	if err != nil {
+		return
+	}
+	defer res.Body.Close()
+	res, err = getError(res)
+	if err != nil {
+		return
+	}
+	result = &TaskList{}
+	err = json.NewDecoder(res.Body).Decode(result)
+	return
 }
 
 // Waits for a task to complete by polling the tasks API until a task returns with

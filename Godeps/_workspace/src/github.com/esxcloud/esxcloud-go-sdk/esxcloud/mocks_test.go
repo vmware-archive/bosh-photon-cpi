@@ -1,6 +1,7 @@
 package esxcloud
 
 import (
+	"bytes"
 	"crypto/tls"
 	"fmt"
 	"math/rand"
@@ -8,7 +9,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"time"
-	"bytes"
+	"strconv"
 )
 
 type testServer struct {
@@ -94,6 +95,15 @@ func randomString(n int, prefixes ...string) string {
 
 	buffer.WriteString(string(b))
 	return buffer.String()
+}
+
+func randomAddress() string {
+	rand.Seed(time.Now().UTC().UnixNano())
+	addr := strconv.Itoa(rand.Intn(256))
+	for i := 0; i < 3; i++ {
+		addr += "." + strconv.Itoa(rand.Intn(256))
+	}
+	return addr
 }
 
 func isRealAgent() bool {

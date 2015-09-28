@@ -2,6 +2,7 @@ package esxcloud
 
 import (
 	"encoding/json"
+
 	"github.com/esxcloud/esxcloud-go-sdk/esxcloud/internal/rest"
 )
 
@@ -10,10 +11,12 @@ type ResourceTicketsAPI struct {
 	client *Client
 }
 
+var ResourceTicketUrl string = "/resource-tickets/"
+
 // Gets all tasks with the specified resource ticket ID, using options to filter the results.
 // If options is nil, no filtering will occur.
 func (api *ResourceTicketsAPI) GetTasks(id string, options *TaskGetOptions) (result *TaskList, err error) {
-	uri := api.client.Endpoint+"/v1/resource-tickets/"+id+"/tasks"
+	uri := api.client.Endpoint + ResourceTicketUrl + id + "/tasks"
 	if options != nil {
 		uri += getQueryString(options)
 	}

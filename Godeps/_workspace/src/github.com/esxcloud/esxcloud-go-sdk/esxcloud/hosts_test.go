@@ -1,151 +1,255 @@
 package esxcloud
 
 import (
-	"testing"
-	"reflect"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-func TestCreateGetAndDeleteHosts(t *testing.T) {
-	if isIntegrationTest() {
-		t.Skip("Skipping Host test on integration mode. No valid Host Address")
-	}
-	// Test Create
-	mockTask := createMockTask("CREATE_HOST", "COMPLETED")
-	server, client := testSetup()
-	server.SetResponseJson(200, mockTask)
-	defer server.Close()
+var _ = Describe("Host", func() {
+	var (
+		server   *testServer
+		client   *Client
+		hostSpec *HostCreateSpec
+	)
 
-	hostSpec := &HostCreateSpec{
-		Username: randomString(10),
-		Password: randomString(10),
-		Address: randomString(10),
-		Tags: []string{},
-	}
-	createTask, err := client.Hosts.Create(hostSpec)
-	if err != nil {
-		t.Error("Not expecting error")
-		t.Log(err)
-	}
-	if createTask == nil {
-		t.Error("Not expecting task to be nil")
-	}
-	if createTask.Operation != "CREATE_HOST" {
-		t.Error("Expected task operation to be CREATE_HOST")
-	}
-	if createTask.State != "COMPLETED" {
-		t.Error("Expected task status to be COMPLETED")
-	}
-
-	// Test Get
-	server.SetResponseJson(200, Host{Username: hostSpec.Username})
-	host, err := client.Hosts.Get(createTask.Entity.ID)
-	if err != nil {
-		t.Error("Did not expect error from Get")
-		t.Log(err)
-	}
-	if host.Username != hostSpec.Username && host.Password != hostSpec.Password {
-		t.Error("Host returned by Get did not match spec")
-	}
-
-	// Test GetAll
-	server.SetResponseJson(200, &Hosts{[]Host{Host{Username: hostSpec.Username, Password: hostSpec.Password}}})
-	hostList, err := client.Hosts.GetAll()
-	if err != nil {
-		t.Error("Did not expect error from GetAll")
-		t.Log(err)
-	}
-	var found bool
-	for _, h := range hostList.Items {
-		if h.Username == hostSpec.Username && h.Password == hostSpec.Password {
-			found = true
-			break
+	BeforeEach(func() {
+		if isIntegrationTest() {
+			Skip("Skipping Host test on integration mode. Unable to prevent address host collision")
 		}
-	}
-	if !found {
-		t.Error("Did not find host with username " + hostSpec.Username + " and password " + hostSpec.Password)
-	}
-
-	// Test Delete
-	mockTask = createMockTask("DELETE_HOST", "COMPLETED")
-	server.SetResponseJson(200, mockTask)
-	deleteTask, err := client.Hosts.Delete(createTask.Entity.ID)
-	if err != nil {
-		t.Error("Not expecting error")
-		t.Log(err)
-	}
-	if deleteTask == nil {
-		t.Error("Not expecting task to be nil")
-	}
-	if deleteTask.Operation != "DELETE_HOST" {
-		t.Error("Expected task operation to be DELETE_HOST")
-	}
-	if deleteTask.State != "COMPLETED" {
-		t.Error("Expected task status to be COMPLETED")
-	}
-}
-
-func TestHostGetTask(t *testing.T) {
-	if isIntegrationTest() {
-		t.Skip("Skipping Host test on integration mode. No valid Host Address")
-	}
-	mockTask := createMockTask("CREATE_HOST", "COMPLETED")
-	server, client := testSetup()
-	server.SetResponseJson(200, mockTask)
-	defer server.Close()
-
-	hostSpec := &HostCreateSpec{
-		Username: randomString(10),
-		Password: randomString(10),
-		Address: randomString(10),
-		Tags: []string{},
-	}
-	createTask, err := client.Hosts.Create(hostSpec)
-	if err != nil {
-		t.Error("Not expecting error")
-		t.Log(err)
-	}
-	if createTask == nil {
-		t.Error("Not expecting task to be nil")
-	}
-	if createTask.Operation != "CREATE_HOST" {
-		t.Error("Expected task operation to be CREATE_HOST")
-	}
-	if createTask.State != "COMPLETED" {
-		t.Error("Expected task status to be COMPLETED")
-	}
-
-	server.SetResponseJson(200, &TaskList{[]Task{*createTask}})
-	taskList, err := client.Hosts.GetTasks(createTask.Entity.ID, nil)
-	if err != nil {
-		t.Error("Did not expect error from GetTasks")
-		t.Log(err)
-	}
-
-	var found bool
-	for _,task := range taskList.Items {
-		if reflect.DeepEqual(task, *createTask) {
-			found = true
-			break
+		server, client = testSetup()
+		hostSpec = &HostCreateSpec{
+			Username: randomString(10),
+			Password: randomString(10),
+			Address:  randomAddress(),
+			Tags:     []string{"CLOUD"},
+			Metadata: map[string]string{"Test": "go-sdk-host"},
 		}
-	}
-	if !found {
-		t.Error("Did not find task with host id " + createTask.Entity.ID)
-	}
+	})
 
-	taskList, err = client.Hosts.GetTasks(createTask.Entity.ID, &TaskGetOptions{State: "COMPLETED"})
-	if err != nil {
-		t.Error("Did not expect error from GetTasks")
-		t.Log(err)
-	}
+	AfterEach(func() {
+		cleanHosts(client)
+		server.Close()
+	})
 
-	found = false
-	for _,task := range taskList.Items {
-		if reflect.DeepEqual(task, *createTask) {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Error("Did not find task with host id " + createTask.Entity.ID + " with state COMPLETED")
-	}
-}
+	Describe("CreateAndDeleteHost", func() {
+		It("host create and delete succeeds", func() {
+			mockTask := createMockTask("CREATE_HOST", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+
+			task, err := client.Hosts.Create(hostSpec)
+			task, err = client.Tasks.Wait(task.ID)
+
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+			Expect(task).ShouldNot(BeNil())
+			Expect(task.Operation).Should(Equal("CREATE_HOST"))
+			Expect(task.State).Should(Equal("COMPLETED"))
+
+			mockTask = createMockTask("DELETE_HOST", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+
+			task, err = client.Hosts.Delete(task.Entity.ID)
+			task, err = client.Tasks.Wait(task.ID)
+
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+			Expect(task).ShouldNot(BeNil())
+			Expect(task.Operation).Should(Equal("DELETE_HOST"))
+			Expect(task.State).Should(Equal("COMPLETED"))
+		})
+	})
+
+	Describe("GetHosts", func() {
+		It("GetHosts succeeds", func() {
+			mockTask := createMockTask("CREATE_HOST", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+
+			task, err := client.Hosts.Create(hostSpec)
+			task, err = client.Tasks.Wait(task.ID)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+
+			server.SetResponseJson(200, Host{Tags: hostSpec.Tags, ID: task.Entity.ID})
+			host, err := client.Hosts.Get(task.Entity.ID)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+			Expect(host.ID).Should(Equal(task.Entity.ID))
+			Expect(host.Tags).Should(Equal(hostSpec.Tags))
+
+			mockTask = createMockTask("DELETE_HOST", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+			task, err = client.Hosts.Delete(task.Entity.ID)
+			task, err = client.Tasks.Wait(task.ID)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+		})
+
+		It("GetAll returns a host", func() {
+			mockTask := createMockTask("CREATE_HOST", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+
+			task, err := client.Hosts.Create(hostSpec)
+			task, err = client.Tasks.Wait(task.ID)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+
+			server.SetResponseJson(200, &Hosts{[]Host{Host{Tags: hostSpec.Tags, ID: task.Entity.ID}}})
+			hostList, err := client.Hosts.GetAll()
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+			Expect(hostList).ShouldNot(BeNil())
+
+			var found bool
+			for _, host := range hostList.Items {
+				if host.ID == task.Entity.ID {
+					found = true
+					break
+				}
+			}
+			Expect(found).Should(BeTrue())
+
+			mockTask = createMockTask("DELETE_HOST", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+			task, err = client.Hosts.Delete(task.Entity.ID)
+			task, err = client.Tasks.Wait(task.ID)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+		})
+	})
+
+	Describe("GetTasks", func() {
+		It("GetTasks returns a completed task", func() {
+			mockTask := createMockTask("CREATE_HOST", "COMPLETED")
+			mockTask.Entity.ID = "mock-task-id"
+			server.SetResponseJson(200, mockTask)
+
+			task, err := client.Hosts.Create(hostSpec)
+			task, err = client.Tasks.Wait(task.ID)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+
+			server.SetResponseJson(200, &TaskList{[]Task{*mockTask}})
+			taskList, err := client.Flavors.GetTasks(task.Entity.ID, &TaskGetOptions{})
+
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+			Expect(taskList).ShouldNot(BeNil())
+			Expect(taskList.Items).Should(ContainElement(*task))
+
+			mockTask = createMockTask("DELETE_HOST", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+			task, err = client.Hosts.Delete(task.Entity.ID)
+			task, err = client.Tasks.Wait(task.ID)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+		})
+	})
+
+	Describe("GetVms", func() {
+		var (
+			tenantID     string
+			resName      string
+			projID       string
+			imageID      string
+			flavorSpec   *FlavorCreateSpec
+			vmFlavorSpec *FlavorCreateSpec
+			vmSpec       *VmCreateSpec
+		)
+
+		BeforeEach(func() {
+			tenantID = createTenant(server, client)
+			resName = createResTicket(server, client, tenantID)
+			projID = createProject(server, client, tenantID, resName)
+			imageID = createImage(server, client)
+			flavorSpec = &FlavorCreateSpec{
+				[]QuotaLineItem{QuotaLineItem{"COUNT", 1, "ephemeral-disk.cost"}},
+				"ephemeral-disk",
+				randomString(10, "go-sdk-flavor-"),
+			}
+
+			_, err := client.Flavors.Create(flavorSpec)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+
+			vmFlavorSpec = &FlavorCreateSpec{
+				Name: randomString(10, "go-sdk-flavor-"),
+				Kind: "vm",
+				Cost: []QuotaLineItem{
+					QuotaLineItem{"GB", 2, "vm.memory"},
+					QuotaLineItem{"COUNT", 4, "vm.cpu"},
+				},
+			}
+			_, err = client.Flavors.Create(vmFlavorSpec)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+
+			vmSpec = &VmCreateSpec{
+				Flavor:        vmFlavorSpec.Name,
+				SourceImageID: imageID,
+				AttachedDisks: []AttachedDisk{
+					AttachedDisk{
+						CapacityGB: 1,
+						Flavor:     flavorSpec.Name,
+						Kind:       "ephemeral-disk",
+						Name:       randomString(10),
+						State:      "STARTED",
+						BootDisk:   true,
+					},
+				},
+				Name: randomString(10, "go-sdk-vm-"),
+			}
+		})
+
+		AfterEach(func() {
+			cleanVMs(client, projID)
+			cleanImages(client)
+			cleanFlavors(client)
+			cleanTenants(client)
+		})
+
+		It("GetVms returns a list of vms", func() {
+			mockTask := createMockTask("CREATE_HOST", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+			task, err := client.Hosts.Create(hostSpec)
+			task, err = client.Tasks.Wait(task.ID)
+
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+
+			mockTask = createMockTask("CREATE_VM", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+			vmTask, err := client.Projects.CreateVM(projID, vmSpec)
+			vmTask, err = client.Tasks.Wait(vmTask.ID)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+
+			server.SetResponseJson(200, &VMs{[]VM{VM{Name: vmSpec.Name}}})
+			vmList, err := client.Deployments.GetVms(task.Entity.ID)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+
+			var found bool
+			for _, vm := range vmList.Items {
+				if vm.Name == vmSpec.Name && vm.ID == vmTask.Entity.ID {
+					found = true
+					break
+				}
+			}
+			Expect(found).Should(BeTrue())
+
+			mockTask = createMockTask("DELETE_VM", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+			task, err = client.VMs.Delete(task.Entity.ID)
+
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+
+			mockTask = createMockTask("DELETE_HOST", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+			task, err = client.Hosts.Delete(task.Entity.ID)
+
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+		})
+	})
+})

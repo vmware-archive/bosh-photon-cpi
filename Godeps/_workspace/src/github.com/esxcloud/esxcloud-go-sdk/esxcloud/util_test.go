@@ -1,18 +1,19 @@
 package esxcloud
 
 import (
-	"testing"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 type options struct {
-	A int
-	B string
+	A int    `urlParam:"a"`
+	B string `urlParam:"b"`
 }
 
-func TestGetQueryString(t *testing.T) {
-	opts := &options{5, "a test"}
-	query := getQueryString(opts)
-	if query != "?a=5&b=a+test" {
-		t.Error("Query string is not correct")
-	}
-}
+var _ = Describe("Utils", func() {
+	It("GetQueryString", func() {
+		opts := &options{5, "a test"}
+		query := getQueryString(opts)
+		Expect(query).Should(Equal("?a=5&b=a+test"))
+	})
+})

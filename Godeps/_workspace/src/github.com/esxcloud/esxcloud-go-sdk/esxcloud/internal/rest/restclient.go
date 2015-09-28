@@ -46,8 +46,8 @@ func Do(client *http.Client, req *Request) (res *http.Response, err error) {
 	if req.ContentType != "" {
 		r.Header.Add("Content-Type", req.ContentType)
 	}
-	if req.Token != ""{
-		r.Header.Add("Authorization", "Bearer " + req.Token)
+	if req.Token != "" {
+		r.Header.Add("Authorization", "Bearer "+req.Token)
 	}
 	res, err = client.Do(r)
 	return

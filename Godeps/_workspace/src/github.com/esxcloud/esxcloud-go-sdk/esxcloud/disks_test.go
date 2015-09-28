@@ -1,155 +1,129 @@
 package esxcloud
 
 import (
-	"testing"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-func TestCreateGetDeleteDisk(t *testing.T) {
-	// Create tenant
-	mockTask := createMockTask("CREATE_TENANT", "COMPLETED")
-	server, client := testSetup()
-	server.SetResponseJson(200, mockTask)
-	defer server.Close()
+var _ = Describe("Disk", func() {
+	var (
+		server     *testServer
+		client     *Client
+		tenantID   string
+		resName    string
+		projID     string
+		flavorName string
+		flavorID   string
+		diskSpec   *DiskCreateSpec
+	)
 
-	tenantSpec := &TenantCreateSpec{Name: randomString(10, "go-sdk-tenant-")}
-	tenantTask, _ := client.Tenants.Create(tenantSpec)
+	BeforeEach(func() {
+		server, client = testSetup()
+		tenantID = createTenant(server, client)
+		resName = createResTicket(server, client, tenantID)
+		projID = createProject(server, client, tenantID, resName)
+		flavorName, flavorID = createFlavor(server, client)
+		diskSpec = &DiskCreateSpec{
+			Flavor:     flavorName,
+			Kind:       "persistent-disk",
+			CapacityGB: 2,
+			Name:       randomString(10, "go-sdk-disk-"),
+		}
+	})
 
-	// Create resource ticket
-	resSpec := &ResourceTicketCreateSpec{
-		Name:   randomString(10),
-		Limits: []QuotaLineItem{QuotaLineItem{Unit: "GB", Value: 16, Key: "vm.memory"}},
-	}
-	_, _ = client.Tenants.CreateResourceTicket(tenantTask.Entity.ID, resSpec)
+	AfterEach(func() {
+		cleanDisks(client, projID)
+		cleanFlavors(client)
+		cleanTenants(client)
+		server.Close()
+	})
 
-	// Create project
-	projSpec := &ProjectCreateSpec{
-		ResourceTicketReservation{
-			resSpec.Name,
-			[]QuotaLineItem{QuotaLineItem{"GB", 2, "vm.memory"}},
-		},
-		randomString(10, "go-sdk-project-"),
-	}
-	projTask, _ := client.Tenants.CreateProject(tenantTask.Entity.ID, projSpec)
+	Describe("CreateAndDeleteDisk", func() {
+		It("Disk create and delete succeeds", func() {
+			mockTask := createMockTask("CREATE_DISK", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
 
-	// Create flavor
-	flavorSpec := &FlavorCreateSpec{
-		[]QuotaLineItem{QuotaLineItem{"COUNT", 1, "persistent-disk.cost"}},
-		"persistent-disk",
-		randomString(10),
-	}
-	_, _ = client.Flavors.Create(flavorSpec)
+			task, err := client.Projects.CreateDisk(projID, diskSpec)
+			task, err = client.Tasks.Wait(task.ID)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+			Expect(task).ShouldNot(BeNil())
+			Expect(task.Operation).Should(Equal("CREATE_DISK"))
+			Expect(task.State).Should(Equal("COMPLETED"))
 
-	// Create disk
-	mockTask = createMockTask("CREATE_DISK", "QUEUED")
-	server.SetResponseJson(200, mockTask)
-	diskSpec := &DiskCreateSpec{
-		Flavor:     flavorSpec.Name,
-		Kind:       "persistent-disk",
-		CapacityGB: 2,
-		Name:       randomString(10),
-	}
-	diskTask, err := client.Projects.CreateDisk(projTask.Entity.ID, diskSpec)
-	if err != nil {
-		t.Error("Not expecting error")
-		t.Log(err)
-	}
-	if diskTask == nil {
-		t.Error("Not expecting task to be nil")
-	}
-	if diskTask.Operation != "CREATE_DISK" {
-		t.Error("Expected task operation to be CREATE_DISK")
-	}
-	if diskTask.State != "QUEUED" {
-		t.Error("Expected task status to be QUEUED")
-	}
+			mockTask = createMockTask("DELETE_DISK", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+			task, err = client.Disks.Delete(task.Entity.ID)
+			task, err = client.Tasks.Wait(task.ID)
 
-	// Wait for disk creation to complete
-	mockTask = createMockTask("CREATE_DISK", "COMPLETED")
-	server.SetResponseJson(200, mockTask)
-	diskTask, err = client.Tasks.Wait(diskTask.ID)
-	if err != nil {
-		t.Error("Not expecting error")
-		t.Log(err)
-	}
-	if diskTask == nil {
-		t.Error("Not expecting task to be nil")
-	}
-	if diskTask.Operation != "CREATE_DISK" {
-		t.Error("Expected task operation to be CREATE_DISK")
-	}
-	if diskTask.State != "COMPLETED" {
-		t.Error("Expected task status to be COMPLETED")
-	}
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+			Expect(task).ShouldNot(BeNil())
+			Expect(task.Operation).Should(Equal("DELETE_DISK"))
+			Expect(task.State).Should(Equal("COMPLETED"))
+		})
+	})
 
-	// Get disk
-	diskMock := &PersistentDisk{
-		Name:       diskSpec.Name,
-		Flavor:     diskSpec.Flavor,
-		CapacityGB: diskSpec.CapacityGB,
-		Kind:       diskSpec.Kind,
-	}
-	server.SetResponseJson(200, diskMock)
-	disk, err := client.Disks.Get(diskTask.Entity.ID)
-	if disk.Flavor != diskSpec.Flavor {
-		t.Error("Disk flavor did not match spec")
-	}
-	if disk.Name != diskSpec.Name {
-		t.Error("Disk name did not match spec")
-	}
-	if disk.Kind != diskSpec.Kind {
-		t.Error("Disk kind did not match spec")
-	}
-	if disk.CapacityGB != diskSpec.CapacityGB {
-		t.Error("Disk capacity did not match spec")
-	}
+	Describe("GetDisk", func() {
+		It("Get disk returns a disk ID", func() {
+			mockTask := createMockTask("CREATE_DISK", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
 
-	// Delete disk
-	mockTask = createMockTask("DELETE_DISK", "QUEUED")
-	server.SetResponseJson(200, mockTask)
-	deleteTask, err := client.Disks.Delete(diskTask.Entity.ID, false)
-	if err != nil {
-		t.Error("Not expecting error")
-		t.Log(err)
-	}
-	if deleteTask == nil {
-		t.Error("Not expecting task to be nil")
-	}
-	if deleteTask.Operation != "DELETE_DISK" {
-		t.Error("Expected task operation to be DELETE_DISK")
-	}
-	if deleteTask.State != "QUEUED" {
-		t.Error("Expected task status to be QUEUED")
-	}
+			task, err := client.Projects.CreateDisk(projID, diskSpec)
+			task, err = client.Tasks.Wait(task.ID)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
 
-	// Wait for disk deletion
-	mockTask = createMockTask("DELETE_DISK", "COMPLETED")
-	server.SetResponseJson(200, mockTask)
-	deleteTask, err = client.Tasks.Wait(deleteTask.ID)
-	if err != nil {
-		t.Error("Not expecting error")
-		t.Log(err)
-	}
-	if deleteTask == nil {
-		t.Error("Not expecting task to be nil")
-	}
-	if deleteTask.Operation != "DELETE_DISK" {
-		t.Error("Expected task operation to be DELETE_DISK")
-	}
-	if deleteTask.State != "COMPLETED" {
-		t.Error("Expected task status to be COMPLETED")
-	}
+			diskMock := &PersistentDisk{
+				Name:       diskSpec.Name,
+				Flavor:     diskSpec.Flavor,
+				CapacityGB: diskSpec.CapacityGB,
+				Kind:       diskSpec.Kind,
+			}
+			server.SetResponseJson(200, diskMock)
+			disk, err := client.Disks.Get(task.Entity.ID)
 
-	// Cleanup project
-	_, err = client.Projects.Delete(projTask.Entity.ID)
-	if err != nil {
-		t.Error("Not expecting error when deleting project")
-		t.Log(err)
-	}
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+			Expect(disk.Name).Should(Equal(diskSpec.Name))
+			Expect(disk.Flavor).Should(Equal(diskSpec.Flavor))
+			Expect(disk.Kind).Should(Equal(diskSpec.Kind))
+			Expect(disk.CapacityGB).Should(Equal(diskSpec.CapacityGB))
+			Expect(disk.ID).Should(Equal(task.Entity.ID))
 
-	// Cleanup tenant
-	_, err = client.Tenants.Delete(tenantTask.Entity.ID)
-	if err != nil {
-		t.Error("Not expecting error when deleting tenant")
-		t.Log(err)
-	}
-}
+			mockTask = createMockTask("DELETE_DISK", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+			task, err = client.Disks.Delete(task.Entity.ID)
+			task, err = client.Tasks.Wait(task.ID)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+		})
+	})
+
+	Describe("GetTasks", func() {
+		It("GetTasks returns a completed task", func() {
+			mockTask := createMockTask("CREATE_DISK", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+
+			task, err := client.Projects.CreateDisk(projID, diskSpec)
+			task, err = client.Tasks.Wait(task.ID)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+
+			server.SetResponseJson(200, &TaskList{[]Task{*mockTask}})
+			taskList, err := client.Disks.GetTasks(task.Entity.ID, &TaskGetOptions{})
+
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+			Expect(taskList).ShouldNot(BeNil())
+			Expect(taskList.Items).Should(ContainElement(*task))
+
+			mockTask = createMockTask("DELETE_DISK", "COMPLETED")
+			server.SetResponseJson(200, mockTask)
+			task, err = client.Disks.Delete(task.Entity.ID)
+			task, err = client.Tasks.Wait(task.ID)
+			GinkgoT().Log(err)
+			Expect(err).Should(BeNil())
+		})
+	})
+})

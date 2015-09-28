@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
-	"strings"
 )
 
 // Reads an error out of the HTTP response, or does nothing if
@@ -68,7 +67,7 @@ func getQueryString(options interface{}) string {
 		field := strct.Field(i)
 		value := fmt.Sprint(field.Interface())
 		if value != "" {
-			buffer.WriteString(strings.ToLower(typ.Field(i).Name) + "=" + url.QueryEscape(value))
+			buffer.WriteString(typ.Field(i).Tag.Get("urlParam") + "=" + url.QueryEscape(value))
 			if i < strct.NumField()-1 {
 				buffer.WriteString("&")
 			}

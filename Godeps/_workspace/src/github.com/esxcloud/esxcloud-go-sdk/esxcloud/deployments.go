@@ -12,13 +12,15 @@ type DeploymentsAPI struct {
 	client *Client
 }
 
+var DeploymentUrl string = "/deployments"
+
 // Creates a deployment
 func (api *DeploymentsAPI) Create(deploymentSpec *DeploymentCreateSpec) (task *Task, err error) {
 	body, err := json.Marshal(deploymentSpec)
 	if err != nil {
 		return
 	}
-	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+"/v1/deployments", bytes.NewBuffer(body), api.client.options.Token)
+	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+DeploymentUrl, bytes.NewBuffer(body), api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -29,7 +31,7 @@ func (api *DeploymentsAPI) Create(deploymentSpec *DeploymentCreateSpec) (task *T
 
 // Deletes a deployment with specified ID.
 func (api *DeploymentsAPI) Delete(id string) (task *Task, err error) {
-	res, err := rest.Delete(api.client.httpClient, api.client.Endpoint+"/v1/deployments/"+id, api.client.options.Token)
+	res, err := rest.Delete(api.client.httpClient, api.client.Endpoint+DeploymentUrl+"/"+id, api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -40,7 +42,7 @@ func (api *DeploymentsAPI) Delete(id string) (task *Task, err error) {
 
 // Returns all deployments.
 func (api *DeploymentsAPI) GetAll() (result *Deployments, err error) {
-	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/deployments", api.client.options.Token)
+	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+DeploymentUrl, api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -56,7 +58,7 @@ func (api *DeploymentsAPI) GetAll() (result *Deployments, err error) {
 
 // Gets a deployment with the specified ID.
 func (api *DeploymentsAPI) Get(id string) (deployment *Deployment, err error) {
-	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/deployments/"+id, api.client.options.Token)
+	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+DeploymentUrl+"/"+id, api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -72,7 +74,7 @@ func (api *DeploymentsAPI) Get(id string) (deployment *Deployment, err error) {
 
 // Gets all hosts with the specified deployment ID.
 func (api *DeploymentsAPI) GetHosts(id string) (result *Hosts, err error) {
-	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/deployments/"+id+"/hosts", api.client.options.Token)
+	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+DeploymentUrl+"/"+id+"/hosts", api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -88,7 +90,7 @@ func (api *DeploymentsAPI) GetHosts(id string) (result *Hosts, err error) {
 
 // Gets all the vms with the specified deployment ID.
 func (api *DeploymentsAPI) GetVms(id string) (result *VMs, err error) {
-	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/deployments/"+id+"/vms", api.client.options.Token)
+	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+DeploymentUrl+"/"+id+"/vms", api.client.options.Token)
 	if err != nil {
 		return
 	}

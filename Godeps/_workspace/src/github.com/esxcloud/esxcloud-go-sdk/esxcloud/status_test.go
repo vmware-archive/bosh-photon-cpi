@@ -1,29 +1,33 @@
 package esxcloud
 
 import (
-	"testing"
+. "github.com/onsi/ginkgo"
+. "github.com/onsi/gomega"
 )
 
-// Simple preliminary test. Make sure status API correctly deserializes the response
-func TestGetStatus200(t *testing.T) {
-	expectedStruct := Status{"READY", []Component{{"chairman", "", "READY"}, {"housekeeper", "", "READY"}}}
-	server, client := testSetup()
-	server.SetResponseJson(200, expectedStruct)
-	defer server.Close()
+var _ = Describe("Status", func() {
+	var (
+		server *testServer
+		client *Client
+	)
 
-	status, err := client.Status.Get()
-	if err != nil {
-		t.Error("Not expecting error from GetStatus")
-		t.Log(err)
-	}
+	BeforeEach(func() {
+		server, client = testSetup()
+	})
 
-	if status.Status != expectedStruct.Status {
-		t.Error("Status did not match expected result")
-	}
-	if len(status.Components) < 1 {
-		t.Error("Expected to receive more than one status component")
-		t.Log(status)
-	}
+	AfterEach(func() {
+		server.Close()
+	})
 
-	return
-}
+	// Simple preliminary test. Make sure status API correctly deserializes the response
+	It("GetStatus200", func() {
+		expectedStruct := Status{"READY", []Component{{"chairman", "", "READY"}, {"housekeeper", "", "READY"}}}
+		server.SetResponseJson(200, expectedStruct)
+
+		status, err := client.Status.Get()
+		GinkgoT().Log(err)
+		Expect(err).Should(BeNil())
+		Expect(status.Status).Should(Equal(expectedStruct.Status))
+		Expect(status.Components).ShouldNot(HaveLen(1))
+	})
+})

@@ -3,6 +3,7 @@ package esxcloud
 import (
 	"bytes"
 	"encoding/json"
+
 	"github.com/esxcloud/esxcloud-go-sdk/esxcloud/internal/rest"
 )
 
@@ -13,9 +14,11 @@ type FlavorsAPI struct {
 
 // Options used for find/get APIs
 type FlavorGetOptions struct {
-	Name string
-	Kind string
+	Name string `urlParam:"name"`
+	Kind string `urlParam:"kind"`
 }
+
+var FlavorUrl string = "/flavors"
 
 // Creates a flavor.
 func (api *FlavorsAPI) Create(spec *FlavorCreateSpec) (task *Task, err error) {
@@ -23,7 +26,7 @@ func (api *FlavorsAPI) Create(spec *FlavorCreateSpec) (task *Task, err error) {
 	if err != nil {
 		return
 	}
-	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+"/v1/flavors", bytes.NewReader(body), api.client.options.Token)
+	res, err := rest.Post(api.client.httpClient, api.client.Endpoint+FlavorUrl, bytes.NewReader(body), api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -34,7 +37,7 @@ func (api *FlavorsAPI) Create(spec *FlavorCreateSpec) (task *Task, err error) {
 
 // Gets details of flavor with specified ID.
 func (api *FlavorsAPI) Get(flavorID string) (flavor *Flavor, err error) {
-	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+"/v1/flavors/"+flavorID, api.client.options.Token)
+	res, err := rest.Get(api.client.httpClient, api.client.Endpoint+FlavorUrl+"/"+flavorID, api.client.options.Token)
 	if err != nil {
 		return
 	}
@@ -50,7 +53,7 @@ func (api *FlavorsAPI) Get(flavorID string) (flavor *Flavor, err error) {
 
 // Gets flavors using options to filter results. Returns all flavors if options is nil.
 func (api *FlavorsAPI) GetAll(options *FlavorGetOptions) (flavors *FlavorList, err error) {
-	uri := api.client.Endpoint + "/v1/flavors"
+	uri := api.client.Endpoint + FlavorUrl
 	if options != nil {
 		uri += getQueryString(options)
 	}
@@ -70,11 +73,32 @@ func (api *FlavorsAPI) GetAll(options *FlavorGetOptions) (flavors *FlavorList, e
 
 // Deletes flavor with specified ID.
 func (api *FlavorsAPI) Delete(flavorID string) (task *Task, err error) {
-	res, err := rest.Delete(api.client.httpClient, api.client.Endpoint+"/v1/flavors/"+flavorID, api.client.options.Token)
+	res, err := rest.Delete(api.client.httpClient, api.client.Endpoint+FlavorUrl+"/"+flavorID, api.client.options.Token)
 	if err != nil {
 		return
 	}
 	defer res.Body.Close()
 	task, err = getTask(getError(res))
+	return
+}
+
+// Gets all tasks with the specified flavor ID, using options to filter the results.
+// If options is nil, no filtering will occur.
+func (api *FlavorsAPI) GetTasks(id string, options *TaskGetOptions) (result *TaskList, err error) {
+	uri := api.client.Endpoint+FlavorUrl+"/"+id+"/tasks"
+	if options != nil {
+		uri += getQueryString(options)
+	}
+	res, err := rest.Get(api.client.httpClient, uri, api.client.options.Token)
+	if err != nil {
+		return
+	}
+	defer res.Body.Close()
+	res, err = getError(res)
+	if err != nil {
+		return
+	}
+	result = &TaskList{}
+	err = json.NewDecoder(res.Body).Decode(result)
 	return
 }
