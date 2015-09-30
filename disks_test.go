@@ -57,11 +57,11 @@ var _ = Describe("Disk", func() {
 
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/projects/"+projID+"/disks",
+				server.URL+"/projects/"+projID+"/disks",
 				CreateResponder(200, ToJson(createTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+createTask.ID,
+				server.URL+"/tasks/"+createTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
 
 			actions := map[string]cpi.ActionFn{
@@ -81,11 +81,11 @@ var _ = Describe("Disk", func() {
 
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/projects/"+projID+"/disks",
+				server.URL+"/projects/"+projID+"/disks",
 				CreateResponder(200, ToJson(createTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+createTask.ID,
+				server.URL+"/tasks/"+createTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
 
 			actions := map[string]cpi.ActionFn{
@@ -105,11 +105,11 @@ var _ = Describe("Disk", func() {
 
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/projects/"+projID+"/disks",
+				server.URL+"/projects/"+projID+"/disks",
 				CreateResponder(500, ToJson(createTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+createTask.ID,
+				server.URL+"/tasks/"+createTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
 
 			actions := map[string]cpi.ActionFn{
@@ -156,11 +156,11 @@ var _ = Describe("Disk", func() {
 
 			RegisterResponder(
 				"DELETE",
-				server.URL+"/v1/disks/"+deleteTask.Entity.ID+"?force=true",
+				server.URL+"/disks/"+deleteTask.Entity.ID,
 				CreateResponder(200, ToJson(deleteTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+deleteTask.ID,
+				server.URL+"/tasks/"+deleteTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
 
 			actions := map[string]cpi.ActionFn{
@@ -180,11 +180,11 @@ var _ = Describe("Disk", func() {
 
 			RegisterResponder(
 				"DELETE",
-				server.URL+"/v1/disks/"+deleteTask.Entity.ID+"?force=true",
+				server.URL+"/disks/"+deleteTask.Entity.ID,
 				CreateResponder(404, ToJson(deleteTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+deleteTask.ID,
+				server.URL+"/tasks/"+deleteTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
 
 			actions := map[string]cpi.ActionFn{
@@ -230,7 +230,7 @@ var _ = Describe("Disk", func() {
 
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/disks/"+disk.ID,
+				server.URL+"/disks/"+disk.ID,
 				CreateResponder(200, ToJson(disk)))
 
 			actions := map[string]cpi.ActionFn{
@@ -249,7 +249,7 @@ var _ = Describe("Disk", func() {
 
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/disks/"+disk.ID,
+				server.URL+"/disks/"+disk.ID,
 				CreateResponder(404, ToJson(disk)))
 
 			actions := map[string]cpi.ActionFn{
@@ -268,7 +268,7 @@ var _ = Describe("Disk", func() {
 
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/disks/"+disk.ID,
+				server.URL+"/disks/"+disk.ID,
 				CreateResponder(500, ToJson(disk)))
 
 			actions := map[string]cpi.ActionFn{
@@ -323,7 +323,7 @@ var _ = Describe("Disk", func() {
 
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/projects/"+projID+"/disks",
+				server.URL+"/projects/"+projID+"/disks",
 				CreateResponder(200, ToJson(list)))
 
 			actions := map[string]cpi.ActionFn{
@@ -347,7 +347,7 @@ var _ = Describe("Disk", func() {
 
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/projects/"+projID+"/disks",
+				server.URL+"/projects/"+projID+"/disks",
 				CreateResponder(200, ToJson(list)))
 
 			actions := map[string]cpi.ActionFn{
@@ -366,7 +366,7 @@ var _ = Describe("Disk", func() {
 
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/projects/"+projID+"/disks",
+				server.URL+"/projects/"+projID+"/disks",
 				CreateResponder(500, ToJson(list)))
 
 			actions := map[string]cpi.ActionFn{
@@ -401,36 +401,36 @@ var _ = Describe("Disk", func() {
 
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/vms/fake-vm-id/attach_disk",
+				server.URL+"/vms/fake-vm-id/attach_disk",
 				CreateResponder(200, ToJson(attachTask)))
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/vms/fake-vm-id/attach_iso",
+				server.URL+"/vms/fake-vm-id/attach_iso",
 				CreateResponder(200, ToJson(isoTask)))
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/vms/fake-vm-id/detach_iso",
+				server.URL+"/vms/fake-vm-id/detach_iso",
 				CreateResponder(200, ToJson(detachIsoTask)))
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/vms/fake-vm-id/set_metadata",
+				server.URL+"/vms/fake-vm-id/set_metadata",
 				CreateResponder(200, ToJson(metadataTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/vms/fake-vm-id",
+				server.URL+"/vms/fake-vm-id",
 				CreateResponder(200, ToJson(vm)))
 
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+attachTask.ID,
+				server.URL+"/tasks/"+attachTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+isoTask.ID,
+				server.URL+"/tasks/"+isoTask.ID,
 				CreateResponder(200, ToJson(isoCompletedTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+detachIsoTask.ID,
+				server.URL+"/tasks/"+detachIsoTask.ID,
 				CreateResponder(200, ToJson(detachCompletedTask)))
 
 			actions := map[string]cpi.ActionFn{
@@ -450,12 +450,12 @@ var _ = Describe("Disk", func() {
 
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/vms/fake-vm-id/attach_disk",
+				server.URL+"/vms/fake-vm-id/attach_disk",
 				CreateResponder(404, ToJson(attachTask)))
 
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+attachTask.ID,
+				server.URL+"/tasks/"+attachTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
 
 			actions := map[string]cpi.ActionFn{
@@ -490,36 +490,36 @@ var _ = Describe("Disk", func() {
 
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/vms/fake-vm-id/detach_disk",
+				server.URL+"/vms/fake-vm-id/detach_disk",
 				CreateResponder(200, ToJson(attachTask)))
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/vms/fake-vm-id/attach_iso",
+				server.URL+"/vms/fake-vm-id/attach_iso",
 				CreateResponder(200, ToJson(isoTask)))
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/vms/fake-vm-id/detach_iso",
+				server.URL+"/vms/fake-vm-id/detach_iso",
 				CreateResponder(200, ToJson(detachIsoTask)))
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/vms/fake-vm-id/set_metadata",
+				server.URL+"/vms/fake-vm-id/set_metadata",
 				CreateResponder(200, ToJson(metadataTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/vms/fake-vm-id",
+				server.URL+"/vms/fake-vm-id",
 				CreateResponder(200, ToJson(vm)))
 
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+attachTask.ID,
+				server.URL+"/tasks/"+attachTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+isoTask.ID,
+				server.URL+"/tasks/"+isoTask.ID,
 				CreateResponder(200, ToJson(isoCompletedTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+detachIsoTask.ID,
+				server.URL+"/tasks/"+detachIsoTask.ID,
 				CreateResponder(200, ToJson(detachCompletedTask)))
 
 			actions := map[string]cpi.ActionFn{
@@ -539,12 +539,12 @@ var _ = Describe("Disk", func() {
 
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/vms/fake-vm-id/detach_disk",
+				server.URL+"/vms/fake-vm-id/detach_disk",
 				CreateResponder(404, ToJson(attachTask)))
 
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+attachTask.ID,
+				server.URL+"/tasks/"+attachTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
 
 			actions := map[string]cpi.ActionFn{

@@ -185,7 +185,7 @@ func DeleteVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 	}
 
 	ctx.Logger.Info("Deleting VM")
-	task, err := ctx.Client.VMs.Delete(vmCID, true)
+	task, err := ctx.Client.VMs.Delete(vmCID)
 	if err != nil {
 		return
 	}

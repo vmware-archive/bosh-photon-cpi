@@ -39,11 +39,11 @@ var _ = Describe("Stemcell", func() {
 
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/images",
+				server.URL+"/images",
 				CreateResponder(200, ToJson(createTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+createTask.ID,
+				server.URL+"/tasks/"+createTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
 
 			actions := map[string]cpi.ActionFn{
@@ -64,11 +64,11 @@ var _ = Describe("Stemcell", func() {
 
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/images",
+				server.URL+"/images",
 				CreateResponder(500, ToJson(createTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+createTask.ID,
+				server.URL+"/tasks/"+createTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
 
 			actions := map[string]cpi.ActionFn{
@@ -128,11 +128,11 @@ var _ = Describe("Stemcell", func() {
 
 			RegisterResponder(
 				"DELETE",
-				server.URL+"/v1/images/"+deleteTask.Entity.ID,
+				server.URL+"/images/"+deleteTask.Entity.ID,
 				CreateResponder(200, ToJson(deleteTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+deleteTask.ID,
+				server.URL+"/tasks/"+deleteTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
 
 			actions := map[string]cpi.ActionFn{
@@ -152,11 +152,11 @@ var _ = Describe("Stemcell", func() {
 
 			RegisterResponder(
 				"DELETE",
-				server.URL+"/v1/images/"+deleteTask.Entity.ID,
+				server.URL+"/images/"+deleteTask.Entity.ID,
 				CreateResponder(404, ToJson(deleteTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+deleteTask.ID,
+				server.URL+"/tasks/"+deleteTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
 
 			actions := map[string]cpi.ActionFn{

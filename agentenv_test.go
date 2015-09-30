@@ -65,11 +65,11 @@ var _ = Describe("AgentEnv", func() {
 
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/vms/"+vmID+"/set_metadata",
+				server.URL+"/vms/"+vmID+"/set_metadata",
 				CreateResponder(200, ToJson(metadataTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/vms/"+vmID,
+				server.URL+"/vms/"+vmID,
 				CreateResponder(200, ToJson(vm)))
 
 			err := putAgentEnvMetadata(ctx, vmID, env)

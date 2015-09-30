@@ -74,44 +74,44 @@ var _ = Describe("VMs", func() {
 
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/projects/"+projID+"/vms",
+				server.URL+"/projects/"+projID+"/vms",
 				CreateResponder(200, ToJson(createTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/vms/"+createTask.Entity.ID,
+				server.URL+"/vms/"+createTask.Entity.ID,
 				CreateResponder(200, ToJson(vm)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+createTask.ID,
+				server.URL+"/tasks/"+createTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/vms/"+createTask.Entity.ID+"/attach_iso",
+				server.URL+"/vms/"+createTask.Entity.ID+"/attach_iso",
 				CreateResponder(200, ToJson(isoTask)))
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/vms/"+createTask.Entity.ID+"/detach_iso",
+				server.URL+"/vms/"+createTask.Entity.ID+"/detach_iso",
 				CreateResponder(200, ToJson(detachTask)))
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/vms/"+createTask.Entity.ID+"/operations",
+				server.URL+"/vms/"+createTask.Entity.ID+"/operations",
 				CreateResponder(200, ToJson(onTask)))
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/vms/fake-vm-id/set_metadata",
+				server.URL+"/vms/fake-vm-id/set_metadata",
 				CreateResponder(200, ToJson(metadataTask)))
 
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+isoTask.ID,
+				server.URL+"/tasks/"+isoTask.ID,
 				CreateResponder(200, ToJson(isoCompletedTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+onCompletedTask.ID,
+				server.URL+"/tasks/"+onCompletedTask.ID,
 				CreateResponder(200, ToJson(onCompletedTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+detachTask.ID,
+				server.URL+"/tasks/"+detachTask.ID,
 				CreateResponder(200, ToJson(detachTask)))
 
 			actions := map[string]cpi.ActionFn{
@@ -141,11 +141,11 @@ var _ = Describe("VMs", func() {
 
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/projects/"+projID+"/vms",
+				server.URL+"/projects/"+projID+"/vms",
 				CreateResponder(500, ToJson(createTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+createTask.ID,
+				server.URL+"/tasks/"+createTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
 
 			actions := map[string]cpi.ActionFn{
@@ -233,31 +233,31 @@ var _ = Describe("VMs", func() {
 
 			RegisterResponder(
 				"DELETE",
-				server.URL+"/v1/vms/"+deleteTask.Entity.ID+"?force=true",
+				server.URL+"/vms/"+deleteTask.Entity.ID,
 				CreateResponder(200, ToJson(deleteTask)))
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/vms/"+deleteTask.Entity.ID+"/operations",
+				server.URL+"/vms/"+deleteTask.Entity.ID+"/operations",
 				CreateResponder(200, ToJson(offTask)))
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/vms/"+deleteTask.Entity.ID+"/detach_disk",
+				server.URL+"/vms/"+deleteTask.Entity.ID+"/detach_disk",
 				CreateResponder(200, ToJson(detachQueuedTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+detachCompletedTask.ID,
+				server.URL+"/tasks/"+detachCompletedTask.ID,
 				CreateResponder(200, ToJson(detachCompletedTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+deleteTask.ID,
+				server.URL+"/tasks/"+deleteTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+offCompletedTask.ID,
+				server.URL+"/tasks/"+offCompletedTask.ID,
 				CreateResponder(200, ToJson(offCompletedTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/projects/"+projID+"/disks",
+				server.URL+"/projects/"+projID+"/disks",
 				CreateResponder(200, ToJson(disks)))
 
 			actions := map[string]cpi.ActionFn{
@@ -277,11 +277,11 @@ var _ = Describe("VMs", func() {
 
 			RegisterResponder(
 				"DELETE",
-				server.URL+"/v1/vms/"+deleteTask.Entity.ID+"?force=true",
+				server.URL+"/vms/"+deleteTask.Entity.ID,
 				CreateResponder(404, ToJson(deleteTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+deleteTask.ID,
+				server.URL+"/tasks/"+deleteTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
 
 			actions := map[string]cpi.ActionFn{
@@ -325,7 +325,7 @@ var _ = Describe("VMs", func() {
 			vm := &ec.VM{ID: "fake-vm-id"}
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/vms/"+vm.ID,
+				server.URL+"/vms/"+vm.ID,
 				CreateResponder(200, ToJson(vm)))
 
 			actions := map[string]cpi.ActionFn{
@@ -343,7 +343,7 @@ var _ = Describe("VMs", func() {
 			vm := &ec.VM{ID: "fake-vm-id"}
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/vms/"+vm.ID,
+				server.URL+"/vms/"+vm.ID,
 				CreateResponder(404, ToJson(vm)))
 
 			actions := map[string]cpi.ActionFn{
@@ -361,7 +361,7 @@ var _ = Describe("VMs", func() {
 			vm := &ec.VM{ID: "fake-vm-id"}
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/vms/"+vm.ID,
+				server.URL+"/vms/"+vm.ID,
 				CreateResponder(500, ToJson(vm)))
 
 			actions := map[string]cpi.ActionFn{
@@ -408,11 +408,11 @@ var _ = Describe("VMs", func() {
 
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/vms/"+restartTask.Entity.ID+"/operations",
+				server.URL+"/vms/"+restartTask.Entity.ID+"/operations",
 				CreateResponder(200, ToJson(restartTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+restartTask.ID,
+				server.URL+"/tasks/"+restartTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
 
 			actions := map[string]cpi.ActionFn{
@@ -432,11 +432,11 @@ var _ = Describe("VMs", func() {
 
 			RegisterResponder(
 				"POST",
-				server.URL+"/v1/vms/"+restartTask.Entity.ID+"/operations",
+				server.URL+"/vms/"+restartTask.Entity.ID+"/operations",
 				CreateResponder(404, ToJson(restartTask)))
 			RegisterResponder(
 				"GET",
-				server.URL+"/v1/tasks/"+restartTask.ID,
+				server.URL+"/tasks/"+restartTask.ID,
 				CreateResponder(200, ToJson(completedTask)))
 
 			actions := map[string]cpi.ActionFn{

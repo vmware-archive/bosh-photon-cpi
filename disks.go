@@ -69,7 +69,7 @@ func DeleteDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 	ctx.Logger.Infof("DeleteDisk with disk_cid: '%s'", diskCID)
 
 	ctx.Logger.Info("Deleting disk")
-	task, err := ctx.Client.Disks.Delete(diskCID, true)
+	task, err := ctx.Client.Disks.Delete(diskCID)
 	if err != nil {
 		return
 	}
