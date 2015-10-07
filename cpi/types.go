@@ -40,6 +40,7 @@ const (
 	CloudError          BoshErrorType = "Bosh::Clouds::CloudError"
 	CpiError            BoshErrorType = "Bosh::Clouds::CpiError"
 	NotImplementedError BoshErrorType = "Bosh::Clouds::NotImplemented"
+	NotSupportedError   BoshErrorType = "Bosh::Clouds::NotSupported"
 )
 
 type Request struct {

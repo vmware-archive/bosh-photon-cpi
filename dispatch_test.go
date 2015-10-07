@@ -80,7 +80,7 @@ var _ = Describe("Dispatch", func() {
 		res, err := GetResponse(dispatch(ctx, actions, "create_vm", args))
 
 		Expect(res.Error).ShouldNot(BeNil())
-		Expect(res.Error.Type).Should(Equal(cpi.NotImplementedError))
+		Expect(res.Error.Type).Should(Equal(cpi.NotSupportedError))
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 	It("loads JSON config correctly", func() {

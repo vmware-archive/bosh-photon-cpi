@@ -111,7 +111,7 @@ func dispatch(context *cpi.Context, actions map[string]cpi.ActionFn, method stri
 		context.Logger.Infof("End action %s", method)
 		return createResponse(res, context.Logger.LogData())
 	} else {
-		e := cpi.NewBoshError(cpi.NotImplementedError, false, "Method %s not implemented in esxcloud CPI.", method)
+		e := cpi.NewBoshError(cpi.NotSupportedError, false, "Method %s not supported in esxcloud CPI.", method)
 		context.Logger.Error(e)
 		return createErrorResponse(e, context.Logger.LogData())
 	}
