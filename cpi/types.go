@@ -30,6 +30,7 @@ type ESXCloudConfig struct {
 	ProjectID         string `json:"project"`
 	TenantID          string `json:"tenant"`
 	IgnoreCertificate bool   `json:"ignore_cert"`
+	Token             string `json:"token"`
 }
 
 type ActionFn func(*Context, []interface{}) (interface{}, error)
