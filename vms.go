@@ -2,10 +2,44 @@ package main
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
 	ec "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
-	"net/http"
 )
+
+type CloudProps struct {
+	VMFlavor             string
+	DiskFlavor           string
+	VMAttachedDiskSizeGB int
+}
+
+const (
+	VMAttachedDiskSizeGBDefault = 20
+	DiskFlavorElement           = "disk_flavor"
+	VMFlavorElement             = "vm_flavor"
+	VMAttachedDiskSizeGBElement = "vm_attached_disk_size_gb"
+)
+
+var ErrCloudPropsValues = errors.New("error in cloud props properties")
+
+func ParseCloudProps(cloudPropsMap map[string]interface{}) (cloudProps CloudProps, err error) {
+	var (
+		diskOk bool
+		vmOk   bool
+	)
+	cloudProps.DiskFlavor, diskOk = cloudPropsMap[DiskFlavorElement].(string)
+	cloudProps.VMFlavor, vmOk = cloudPropsMap[VMFlavorElement].(string)
+	cloudProps.VMAttachedDiskSizeGB = VMAttachedDiskSizeGBDefault
+
+	if _, ok := cloudPropsMap[VMAttachedDiskSizeGBElement]; ok {
+		cloudProps.VMAttachedDiskSizeGB = cloudPropsMap[VMAttachedDiskSizeGBElement].(int)
+	}
+	if !diskOk || !vmOk {
+		err = ErrCloudPropsValues
+	}
+	return
+}
 
 func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err error) {
 	if len(args) < 6 {
@@ -19,18 +53,16 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 	if !ok {
 		return nil, errors.New("Unexpected argument where stemcell_cid should be")
 	}
-	cloudProps, ok := args[2].(map[string]interface{})
+	cloudPropsMap, ok := args[2].(map[string]interface{})
 	if !ok {
 		return nil, errors.New("Unexpected argument where cloud_properties should be")
 	}
-	vmFlavor, ok := cloudProps["vm_flavor"].(string)
-	if !ok {
-		return nil, errors.New("Property 'vm_flavor' on cloud_properties is not a string or is not present")
+
+	cloudProps, err := ParseCloudProps(cloudPropsMap)
+	if err != nil {
+		return nil, err
 	}
-	diskFlavor, ok := cloudProps["disk_flavor"].(string)
-	if !ok {
-		return nil, errors.New("Property 'disk_flavor' on cloud_properties is not a string or is not present")
-	}
+
 	networks, ok := args[3].(map[string]interface{})
 	if !ok {
 		return nil, errors.New("Unexpected argument where networks should be")
@@ -48,20 +80,20 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 	ephDiskName := "bosh-ephemeral-disk"
 	spec := &ec.VmCreateSpec{
 		Name:          "bosh-vm",
-		Flavor:        vmFlavor,
+		Flavor:        cloudProps.VMFlavor,
 		SourceImageID: stemcellCID,
 		AttachedDisks: []ec.AttachedDisk{
 			ec.AttachedDisk{
 				CapacityGB: 50, // Ignored
-				Flavor:     diskFlavor,
+				Flavor:     cloudProps.DiskFlavor,
 				Kind:       "ephemeral-disk",
 				Name:       "boot-disk",
 				State:      "STARTED",
 				BootDisk:   true,
 			},
 			ec.AttachedDisk{
-				CapacityGB: 20,
-				Flavor:     diskFlavor,
+				CapacityGB: cloudProps.VMAttachedDiskSizeGB,
+				Flavor:     cloudProps.DiskFlavor,
 				Kind:       "ephemeral-disk",
 				Name:       ephDiskName,
 				State:      "STARTED",
