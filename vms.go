@@ -15,7 +15,7 @@ type CloudProps struct {
 }
 
 const (
-	VMAttachedDiskSizeGBDefault = 20
+	VMAttachedDiskSizeGBDefault = 16
 	DiskFlavorElement           = "disk_flavor"
 	VMFlavorElement             = "vm_flavor"
 	VMAttachedDiskSizeGBElement = "vm_attached_disk_size_gb"
@@ -33,7 +33,7 @@ func ParseCloudProps(cloudPropsMap map[string]interface{}) (cloudProps CloudProp
 	cloudProps.VMAttachedDiskSizeGB = VMAttachedDiskSizeGBDefault
 
 	if _, ok := cloudPropsMap[VMAttachedDiskSizeGBElement]; ok {
-		cloudProps.VMAttachedDiskSizeGB = cloudPropsMap[VMAttachedDiskSizeGBElement].(int)
+		cloudProps.VMAttachedDiskSizeGB = int(cloudPropsMap[VMAttachedDiskSizeGBElement].(float64))
 	}
 	if !diskOk || !vmOk {
 		err = ErrCloudPropsValues

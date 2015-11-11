@@ -56,7 +56,7 @@ var _ = Describe("VMs", func() {
 		var (
 			controlDisk          = "core-100"
 			controlVM            = "core-102"
-			controlSize          = 60
+			controlSize       float64 = 60
 			controlCloudPropsMap = map[string]interface{}{
 				DiskFlavorElement:           controlDisk,
 				VMFlavorElement:             controlVM,
@@ -79,7 +79,7 @@ var _ = Describe("VMs", func() {
 			It("then it should set the proper value for Attached Disk Size in the response", func() {
 				cloudProps, err := ParseCloudProps(controlCloudPropsMap)
 				Ω(err).ShouldNot(HaveOccurred())
-				Ω(cloudProps.VMAttachedDiskSizeGB).Should(Equal(controlSize))
+				Ω(cloudProps.VMAttachedDiskSizeGB).Should(Equal(int(controlSize)))
 			})
 
 			Context("when given a cloud prop map not containing a `vm_attached_disk_size_gb` element", func() {
