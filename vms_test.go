@@ -1,6 +1,10 @@
 package main
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"runtime"
+
 	"github.com/esxcloud/bosh-esxcloud-cpi/cmd"
 	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
 	"github.com/esxcloud/bosh-esxcloud-cpi/logger"
@@ -8,9 +12,6 @@ import (
 	ec "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"net/http"
-	"net/http/httptest"
-	"runtime"
 )
 
 var _ = Describe("VMs", func() {
@@ -49,6 +50,47 @@ var _ = Describe("VMs", func() {
 
 	AfterEach(func() {
 		server.Close()
+	})
+
+	Describe("given a ParseCloudProps function", func() {
+		var (
+			controlDisk          = "core-100"
+			controlVM            = "core-102"
+			controlSize       float64 = 60
+			controlCloudPropsMap = map[string]interface{}{
+				DiskFlavorElement:           controlDisk,
+				VMFlavorElement:             controlVM,
+				VMAttachedDiskSizeGBElement: controlSize,
+			}
+		)
+		Context("when given a valid cloud props map", func() {
+			It("then it should set the proper value for DiskFlavor in the response", func() {
+				cloudProps, err := ParseCloudProps(controlCloudPropsMap)
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(cloudProps.DiskFlavor).Should(Equal(controlDisk))
+			})
+
+			It("then it should set the proper value for VMFlavor in the response", func() {
+				cloudProps, err := ParseCloudProps(controlCloudPropsMap)
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(cloudProps.VMFlavor).Should(Equal(controlVM))
+			})
+
+			It("then it should set the proper value for Attached Disk Size in the response", func() {
+				cloudProps, err := ParseCloudProps(controlCloudPropsMap)
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(cloudProps.VMAttachedDiskSizeGB).Should(Equal(int(controlSize)))
+			})
+
+			Context("when given a cloud prop map not containing a `vm_attached_disk_size_gb` element", func() {
+				It("then it should use the default value for Attached Disk Size in the response", func() {
+					delete(controlCloudPropsMap, VMAttachedDiskSizeGBElement)
+					cloudProps, err := ParseCloudProps(controlCloudPropsMap)
+					Ω(err).ShouldNot(HaveOccurred())
+					Ω(cloudProps.VMAttachedDiskSizeGB).Should(Equal(VMAttachedDiskSizeGBDefault))
+				})
+			})
+		})
 	})
 
 	Describe("CreateVM", func() {
