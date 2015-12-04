@@ -1,10 +1,10 @@
-# bosh-esxcloud-cpi
-BOSH ESXCloud CPI written in Go
+# bosh-photon-cpi
+BOSH Photon CPI written in Go
 
 
-## Bosh Manifest Example for bosh-esxcloud-cpi
+## Bosh Manifest Example for bosh-photon-cpi
 
-This is a sample of how ESXCloud specific properties are used in a  BOSH deployment manifest:
+This is a sample of how Photon specific properties are used in a  BOSH deployment manifest:
 
     ---
 	networks:
@@ -29,10 +29,10 @@ This is a sample of how ESXCloud specific properties are used in a  BOSH deploym
 	  cpi:
 	    agent:
 	      mbus: nats://nats:nats-password@192.168.21.4:4222
-	  esxcloud:
+	  photon:
 	    target: https://192.168.10.1:8080
 	    user: dev
 	    password: pwd
 	    tenant: dev
 	    project: dev
-	    description: Bosh on ESXCloud
+	    description: Bosh on Photon

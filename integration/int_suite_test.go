@@ -8,5 +8,5 @@ import (
 
 func TestDispatch(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "ESXCloud Bosh CPI Integration Tests")
+	RunSpecs(t, "Photon Bosh CPI Integration Tests")
 }

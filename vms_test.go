@@ -5,11 +5,11 @@ import (
 	"net/http/httptest"
 	"runtime"
 
-	"github.com/esxcloud/bosh-esxcloud-cpi/cmd"
-	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
-	"github.com/esxcloud/bosh-esxcloud-cpi/logger"
-	. "github.com/esxcloud/bosh-esxcloud-cpi/mocks"
-	ec "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
+	"github.com/esxcloud/bosh-photon-cpi/cmd"
+	"github.com/esxcloud/bosh-photon-cpi/cpi"
+	"github.com/esxcloud/bosh-photon-cpi/logger"
+	. "github.com/esxcloud/bosh-photon-cpi/mocks"
+	ec "github.com/esxcloud/photon-go-sdk/photon"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -35,7 +35,7 @@ var _ = Describe("VMs", func() {
 		ctx = &cpi.Context{
 			Client: ec.NewTestClient(server.URL, nil, httpClient),
 			Config: &cpi.Config{
-				ESXCloud: &cpi.ESXCloudConfig{
+				Photon: &cpi.PhotonConfig{
 					Target:    server.URL,
 					ProjectID: "fake-project-id",
 				},
@@ -45,7 +45,7 @@ var _ = Describe("VMs", func() {
 			Logger: logger.New(),
 		}
 
-		projID = ctx.Config.ESXCloud.ProjectID
+		projID = ctx.Config.Photon.ProjectID
 	})
 
 	AfterEach(func() {

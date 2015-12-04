@@ -3,9 +3,9 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
-	"github.com/esxcloud/bosh-esxcloud-cpi/logger"
-	. "github.com/esxcloud/bosh-esxcloud-cpi/mocks"
+	"github.com/esxcloud/bosh-photon-cpi/cpi"
+	"github.com/esxcloud/bosh-photon-cpi/logger"
+	. "github.com/esxcloud/bosh-photon-cpi/mocks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"io/ioutil"
@@ -84,12 +84,12 @@ var _ = Describe("Dispatch", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 	It("loads JSON config correctly", func() {
-		configFile, err := ioutil.TempFile("", "bosh-esxcloud-cpi-config")
+		configFile, err := ioutil.TempFile("", "bosh-photon-cpi-config")
 		if err != nil {
 			panic(err)
 		}
 		configPath = configFile.Name()
-		jsonConfig := `{"esxcloud":{"Target":"http://none:123"}}`
+		jsonConfig := `{"photon":{"Target":"http://none:123"}}`
 		configFile.WriteString(jsonConfig)
 
 		context, err := loadConfig(configPath)

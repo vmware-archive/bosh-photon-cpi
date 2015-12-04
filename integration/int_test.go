@@ -3,7 +3,7 @@ package inttests
 import (
 	"encoding/json"
 	"fmt"
-	ec "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
+	ec "github.com/esxcloud/photon-go-sdk/photon"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"io"
@@ -93,7 +93,7 @@ func ECSetup() (err error) {
 var _ = BeforeSuite(func() {
 	// Create JSON config file used by CPI. Agent config is unused for this test suite.
 	configJson := `{
-	"esxcloud": {
+	"photon": {
 		"target": "%s",
 		"project": "%s",
 		"tenant": "%s"
@@ -104,7 +104,7 @@ var _ = BeforeSuite(func() {
 	}
 }`
 	target := os.Getenv("TEST_TARGET")
-	client = ec.NewClient(target)
+	client = ec.NewClient(target, nil)
 	fmt.Printf("Target: %s\n", target)
 
 	err := ECSetup()
@@ -158,7 +158,7 @@ var _ = Describe("Bosh CPI", func() {
 		request := `{ "method": "create_stemcell", "arguments": [ "%s", { "vm_flavor": "%s", "disk_flavor": "%s" } ] }`
 		request = fmt.Sprintf(request, stemcell, vmFlavor, diskFlavor)
 
-		cmd := exec.Command("bosh-esxcloud-cpi", "-configPath="+configPath)
+		cmd := exec.Command("bosh-photon-cpi", "-configPath="+configPath)
 
 		stdin, err := cmd.StdinPipe()
 		Expect(err).NotTo(HaveOccurred())
