@@ -2,8 +2,8 @@ package main
 
 import (
 	"errors"
-	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
-	ec "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
+	"github.com/esxcloud/bosh-photon-cpi/cpi"
+	ec "github.com/esxcloud/photon-go-sdk/photon"
 	"math"
 	"net/http"
 )
@@ -18,7 +18,7 @@ func CreateDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 	}
 	size := toGB(disk_size)
 	if size < 1 {
-		return nil, errors.New("Must provide a size in MiB that rounds up to at least 1 GiB for esxcloud")
+		return nil, errors.New("Must provide a size in MiB that rounds up to at least 1 GiB for photon")
 	}
 	cloudProps, ok := args[1].(map[string]interface{})
 	if !ok {
@@ -45,7 +45,7 @@ func CreateDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 	}
 
 	ctx.Logger.Infof("Creating disk with spec: %#v", diskSpec)
-	task, err := ctx.Client.Projects.CreateDisk(ctx.Config.ESXCloud.ProjectID, diskSpec)
+	task, err := ctx.Client.Projects.CreateDisk(ctx.Config.Photon.ProjectID, diskSpec)
 	if err != nil {
 		return
 	}
@@ -115,7 +115,7 @@ func GetDisks(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 
 	ctx.Logger.Infof("GetDisks with vm_cid: '%s'", vmCID)
 
-	disks, err := ctx.Client.Projects.GetDisks(ctx.Config.ESXCloud.ProjectID, nil)
+	disks, err := ctx.Client.Projects.GetDisks(ctx.Config.Photon.ProjectID, nil)
 	if err != nil {
 		return
 	}

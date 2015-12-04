@@ -1,10 +1,10 @@
 package main
 
 import (
-	. "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
+	. "github.com/esxcloud/photon-go-sdk/photon"
 )
 
-// Indicates whether or not an error is of type esxcloud.TaskError
+// Indicates whether or not an error is of type photon.TaskError
 func isTaskError(e error) bool {
 	if _, ok := e.(TaskError); ok {
 		return true

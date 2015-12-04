@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/esxcloud/bosh-esxcloud-cpi/cpi"
-	ec "github.com/esxcloud/esxcloud-go-sdk/esxcloud"
+	"github.com/esxcloud/bosh-photon-cpi/cpi"
+	ec "github.com/esxcloud/photon-go-sdk/photon"
 )
 
 type CloudProps struct {
@@ -102,7 +102,7 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 		},
 	}
 	ctx.Logger.Infof("Creating VM with spec: %#v", spec)
-	vmTask, err := ctx.Client.Projects.CreateVM(ctx.Config.ESXCloud.ProjectID, spec)
+	vmTask, err := ctx.Client.Projects.CreateVM(ctx.Config.Photon.ProjectID, spec)
 	if err != nil {
 		return
 	}
@@ -182,7 +182,7 @@ func DeleteVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 
 	ctx.Logger.Info("Detaching disks")
 	// Detach any attached disks first
-	disks, err := ctx.Client.Projects.GetDisks(ctx.Config.ESXCloud.ProjectID, nil)
+	disks, err := ctx.Client.Projects.GetDisks(ctx.Config.Photon.ProjectID, nil)
 	if err != nil {
 		return
 	}

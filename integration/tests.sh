@@ -20,4 +20,4 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Running tests"
-go test -v github.com/esxcloud/bosh-esxcloud-cpi/inttests
+go test -v github.com/esxcloud/bosh-photon-cpi/inttests

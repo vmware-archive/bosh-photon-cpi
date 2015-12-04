@@ -2,20 +2,20 @@ package cpi
 
 import (
 	"fmt"
-	"github.com/esxcloud/bosh-esxcloud-cpi/cmd"
-	"github.com/esxcloud/bosh-esxcloud-cpi/logger"
-	"github.com/esxcloud/esxcloud-go-sdk/esxcloud"
+	"github.com/esxcloud/bosh-photon-cpi/cmd"
+	"github.com/esxcloud/bosh-photon-cpi/logger"
+	"github.com/esxcloud/photon-go-sdk/photon"
 )
 
 type Context struct {
-	Client *esxcloud.Client
+	Client *photon.Client
 	Config *Config
 	Runner cmd.Runner
 	Logger logger.Logger
 }
 
 type Config struct {
-	ESXCloud *ESXCloudConfig `json:"esxcloud"`
+	Photon *PhotonConfig `json:"photon"`
 	Agent    *AgentConfig    `json:"agent"`
 }
 
@@ -25,7 +25,7 @@ type AgentConfig struct {
 	Blobstore BlobstoreSpec `json:"blobstore"`
 }
 
-type ESXCloudConfig struct {
+type PhotonConfig struct {
 	Target            string `json:"target"`
 	ProjectID         string `json:"project"`
 	TenantID          string `json:"tenant"`

@@ -1,21 +1,21 @@
 {
-	"ImportPath": "github.com/esxcloud/bosh-esxcloud-cpi",
+	"ImportPath": "github.com/esxcloud/bosh-photon-cpi",
 	"GoVersion": "go1.4.2",
 	"Deps": [
 		{
-			"ImportPath": "github.com/esxcloud/esxcloud-go-sdk/esxcloud",
-			"Comment": "PROMOTED-9",
-			"Rev": "027b0ede14caf2e86537ccef44d0f22d66c77365"
+			"ImportPath": "github.com/esxcloud/photon-go-sdk/photon",
+			"Comment": "PROMOTED-14",
+			"Rev": "c1f025e9f1e94ce32eca181811ff3be7b8da2953"
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",
-			"Comment": "v1.1.0-42-gdbb5c6c",
-			"Rev": "dbb5c6caf33238b57facc1d975b1aaca6b90288c"
+			"Comment": "v1.2.0-29-g7f8ab55",
+			"Rev": "7f8ab55aaf3b86885aa55b762e803744d1674700"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
-			"Comment": "v1.0-39-gc853a76",
-			"Rev": "c853a76367c700fe446c27bc7e6fc8209ee4e0a1"
+			"Comment": "v1.0-71-g2152b45",
+			"Rev": "2152b45fa28a361beba9aab0885972323a444e28"
 		}
 	]
 }
