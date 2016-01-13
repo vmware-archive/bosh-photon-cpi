@@ -140,7 +140,7 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 		Mbus:     ctx.Config.Agent.Mbus,
 		NTP:      ctx.Config.Agent.NTP,
 		Disks: map[string]interface{}{
-			"ephemeral": map[string]interface{}{"id": diskID,},
+			"ephemeral": map[string]interface{}{"DeviceID": diskID,},
 		},
 		Blobstore: cpi.BlobstoreSpec{
 			Provider: ctx.Config.Agent.Blobstore.Provider,
