@@ -178,7 +178,10 @@ func AttachDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 	}
 	// Agent expects a mapping of disk_cid to the ID that gets used by the agent
 	// to resolve the path to the device. In our case, it is the same ID as disk_cid.
-	diskMap[diskCID] = diskCID
+	diskMap[diskCID] = map[string]interface{}{
+		"id": diskCID,
+		"path": "",
+	}
 
 	err = updateAgentEnv(ctx, vmCID, env)
 	if err != nil {
