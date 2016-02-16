@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/esxcloud/bosh-photon-cpi/cpi"
-	ec "github.com/esxcloud/photon-go-sdk/photon"
+	"github.com/vmware/bosh-photon-cpi/cpi"
+	ec "github.com/vmware/photon-controller-go-sdk/photon"
 )
 
 type CloudProps struct {
@@ -141,7 +141,7 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 		NTP:      ctx.Config.Agent.NTP,
 		Disks: map[string]interface{}{
 			"ephemeral": map[string]interface{}{
-				"id": diskID,
+				"id":   diskID,
 				"path": "/dev/sdb"},
 		},
 		Blobstore: cpi.BlobstoreSpec{
@@ -156,9 +156,8 @@ func CreateVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 		return
 	}
 
-	op := &ec.VmOperation{Operation: "START_VM"}
 	ctx.Logger.Info("Starting VM")
-	onTask, err := ctx.Client.VMs.Operation(vmTask.Entity.ID, op)
+	onTask, err := ctx.Client.VMs.Start(vmTask.Entity.ID)
 	if err != nil {
 		return
 	}
@@ -207,8 +206,7 @@ func DeleteVM(ctx *cpi.Context, args []interface{}) (result interface{}, err err
 	}
 
 	ctx.Logger.Info("Stopping VM")
-	op := &ec.VmOperation{Operation: "STOP_VM"}
-	offTask, err := ctx.Client.VMs.Operation(vmCID, op)
+	offTask, err := ctx.Client.VMs.Stop(vmCID)
 	if err != nil {
 		return
 	}
@@ -262,8 +260,7 @@ func RestartVM(ctx *cpi.Context, args []interface{}) (result interface{}, err er
 	}
 
 	ctx.Logger.Infof("Restarting VM: %s", vmCID)
-	op := &ec.VmOperation{Operation: "RESTART_VM"}
-	task, err := ctx.Client.VMs.Operation(vmCID, op)
+	task, err := ctx.Client.VMs.Restart(vmCID)
 	if err != nil {
 		return
 	}

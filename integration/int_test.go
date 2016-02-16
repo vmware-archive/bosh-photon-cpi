@@ -3,7 +3,7 @@ package inttests
 import (
 	"encoding/json"
 	"fmt"
-	ec "github.com/esxcloud/photon-go-sdk/photon"
+	ec "github.com/vmware/photon-controller-go-sdk/photon"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"io"

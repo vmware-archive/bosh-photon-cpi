@@ -2,8 +2,8 @@ package main
 
 import (
 	"errors"
-	"github.com/esxcloud/bosh-photon-cpi/cpi"
-	ec "github.com/esxcloud/photon-go-sdk/photon"
+	"github.com/vmware/bosh-photon-cpi/cpi"
+	ec "github.com/vmware/photon-controller-go-sdk/photon"
 	"math"
 	"net/http"
 )
@@ -179,7 +179,7 @@ func AttachDisk(ctx *cpi.Context, args []interface{}) (result interface{}, err e
 	// Agent expects a mapping of disk_cid to the ID that gets used by the agent
 	// to resolve the path to the device. In our case, it is the same ID as disk_cid.
 	diskMap[diskCID] = map[string]interface{}{
-		"id": diskCID,
+		"id":   diskCID,
 		"path": "",
 	}
 

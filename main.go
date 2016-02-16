@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/esxcloud/bosh-photon-cpi/cmd"
-	"github.com/esxcloud/bosh-photon-cpi/cpi"
-	"github.com/esxcloud/bosh-photon-cpi/logger"
-	"github.com/esxcloud/photon-go-sdk/photon"
+	"github.com/vmware/bosh-photon-cpi/cmd"
+	"github.com/vmware/bosh-photon-cpi/cpi"
+	"github.com/vmware/bosh-photon-cpi/logger"
+	"github.com/vmware/photon-controller-go-sdk/photon"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -74,12 +74,14 @@ func loadConfig(filePath string) (ctx *cpi.Context, err error) {
 	if err != nil {
 		return
 	}
+	tokenOptions := &photon.TokenOptions{
+		AccessToken: config.Photon.Token}
 	clientConfig := &photon.ClientOptions{
 		IgnoreCertificate: config.Photon.IgnoreCertificate,
-		Token: config.Photon.Token,
+		TokenOptions:      tokenOptions,
 	}
 	ctx = &cpi.Context{
-		Client: photon.NewClient(config.Photon.Target, clientConfig),
+		Client: photon.NewClient(config.Photon.Target, "", clientConfig),
 		Config: config,
 		Runner: cmd.NewRunner(),
 		Logger: logger.New(),

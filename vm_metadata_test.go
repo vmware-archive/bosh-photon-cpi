@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/esxcloud/bosh-photon-cpi/cpi"
-	"github.com/esxcloud/bosh-photon-cpi/logger"
-	. "github.com/esxcloud/bosh-photon-cpi/mocks"
+	"github.com/vmware/bosh-photon-cpi/cpi"
+	"github.com/vmware/bosh-photon-cpi/logger"
+	. "github.com/vmware/bosh-photon-cpi/mocks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

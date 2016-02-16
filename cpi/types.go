@@ -2,9 +2,9 @@ package cpi
 
 import (
 	"fmt"
-	"github.com/esxcloud/bosh-photon-cpi/cmd"
-	"github.com/esxcloud/bosh-photon-cpi/logger"
-	"github.com/esxcloud/photon-go-sdk/photon"
+	"github.com/vmware/bosh-photon-cpi/cmd"
+	"github.com/vmware/bosh-photon-cpi/logger"
+	"github.com/vmware/photon-controller-go-sdk/photon"
 )
 
 type Context struct {
@@ -16,7 +16,7 @@ type Context struct {
 
 type Config struct {
 	Photon *PhotonConfig `json:"photon"`
-	Agent    *AgentConfig    `json:"agent"`
+	Agent  *AgentConfig  `json:"agent"`
 }
 
 type AgentConfig struct {

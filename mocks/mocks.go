@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/esxcloud/bosh-photon-cpi/cpi"
-	. "github.com/esxcloud/photon-go-sdk/photon"
+	"github.com/vmware/bosh-photon-cpi/cpi"
+	. "github.com/vmware/photon-controller-go-sdk/photon"
 )
 
 func NewMockServer() (server *httptest.Server) {

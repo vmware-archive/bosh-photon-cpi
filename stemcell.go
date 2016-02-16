@@ -4,7 +4,7 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"errors"
-	"github.com/esxcloud/bosh-photon-cpi/cpi"
+	"github.com/vmware/bosh-photon-cpi/cpi"
 	"os"
 	"path/filepath"
 )

@@ -1,7 +1,7 @@
 package main
 
 import (
-	. "github.com/esxcloud/photon-go-sdk/photon"
+	. "github.com/vmware/photon-controller-go-sdk/photon"
 )
 
 // Indicates whether or not an error is of type photon.TaskError

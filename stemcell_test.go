@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/esxcloud/bosh-photon-cpi/cpi"
-	"github.com/esxcloud/bosh-photon-cpi/logger"
-	. "github.com/esxcloud/bosh-photon-cpi/mocks"
-	ec "github.com/esxcloud/photon-go-sdk/photon"
+	"github.com/vmware/bosh-photon-cpi/cpi"
+	"github.com/vmware/bosh-photon-cpi/logger"
+	. "github.com/vmware/bosh-photon-cpi/mocks"
+	ec "github.com/vmware/photon-controller-go-sdk/photon"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"net/http"
@@ -23,7 +23,7 @@ var _ = Describe("Stemcell", func() {
 		Activate(true)
 		httpClient := &http.Client{Transport: DefaultMockTransport}
 		ctx = &cpi.Context{
-			Client: ec.NewTestClient(server.URL, nil, httpClient),
+			Client: ec.NewTestClient(server.URL, "", nil, httpClient),
 			Logger: logger.New(),
 		}
 	})

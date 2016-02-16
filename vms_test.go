@@ -5,11 +5,11 @@ import (
 	"net/http/httptest"
 	"runtime"
 
-	"github.com/esxcloud/bosh-photon-cpi/cmd"
-	"github.com/esxcloud/bosh-photon-cpi/cpi"
-	"github.com/esxcloud/bosh-photon-cpi/logger"
-	. "github.com/esxcloud/bosh-photon-cpi/mocks"
-	ec "github.com/esxcloud/photon-go-sdk/photon"
+	"github.com/vmware/bosh-photon-cpi/cmd"
+	"github.com/vmware/bosh-photon-cpi/cpi"
+	"github.com/vmware/bosh-photon-cpi/logger"
+	. "github.com/vmware/bosh-photon-cpi/mocks"
+	ec "github.com/vmware/photon-controller-go-sdk/photon"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -33,7 +33,7 @@ var _ = Describe("VMs", func() {
 		Activate(true)
 		httpClient := &http.Client{Transport: DefaultMockTransport}
 		ctx = &cpi.Context{
-			Client: ec.NewTestClient(server.URL, nil, httpClient),
+			Client: ec.NewTestClient(server.URL, "", nil, httpClient),
 			Config: &cpi.Config{
 				Photon: &cpi.PhotonConfig{
 					Target:    server.URL,
@@ -54,10 +54,10 @@ var _ = Describe("VMs", func() {
 
 	Describe("given a ParseCloudProps function", func() {
 		var (
-			controlDisk          = "core-100"
-			controlVM            = "core-102"
-			controlSize       float64 = 60
-			controlCloudPropsMap = map[string]interface{}{
+			controlDisk                  = "core-100"
+			controlVM                    = "core-102"
+			controlSize          float64 = 60
+			controlCloudPropsMap         = map[string]interface{}{
 				DiskFlavorElement:           controlDisk,
 				VMFlavorElement:             controlVM,
 				VMAttachedDiskSizeGBElement: controlSize,
@@ -137,6 +137,10 @@ var _ = Describe("VMs", func() {
 			RegisterResponder(
 				"POST",
 				server.URL+"/vms/"+createTask.Entity.ID+"/operations",
+				CreateResponder(200, ToJson(onTask)))
+			RegisterResponder(
+				"POST",
+				server.URL+"/vms/"+createTask.Entity.ID+"/start",
 				CreateResponder(200, ToJson(onTask)))
 			RegisterResponder(
 				"POST",
@@ -279,7 +283,7 @@ var _ = Describe("VMs", func() {
 				CreateResponder(200, ToJson(deleteTask)))
 			RegisterResponder(
 				"POST",
-				server.URL+"/vms/"+deleteTask.Entity.ID+"/operations",
+				server.URL+"/vms/"+deleteTask.Entity.ID+"/stop",
 				CreateResponder(200, ToJson(offTask)))
 			RegisterResponder(
 				"POST",
@@ -450,7 +454,7 @@ var _ = Describe("VMs", func() {
 
 			RegisterResponder(
 				"POST",
-				server.URL+"/vms/"+restartTask.Entity.ID+"/operations",
+				server.URL+"/vms/"+restartTask.Entity.ID+"/restart",
 				CreateResponder(200, ToJson(restartTask)))
 			RegisterResponder(
 				"GET",
