@@ -1,5 +1,4 @@
-# bosh-photon-cpi
-BOSH Photon CPI written in Go
+#BOSH Photon CPI written in Go
 
 
 ## Bosh Manifest Example for bosh-photon-cpi
